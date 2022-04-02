@@ -1,0 +1,9 @@
+# Project exclude paths
+/.gradle/
+/.idea/
+/build/
+/build/classes/kotlin/desktop/main/
+/build/js/packages/Kore-web/kotlin/
+/gradle/
+gradlew
+gradlew.bat
