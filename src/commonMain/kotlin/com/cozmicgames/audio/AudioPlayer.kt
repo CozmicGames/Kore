@@ -1,0 +1,7 @@
+package com.cozmicgames.audio
+
+interface AudioPlayer {
+    var volume: Float
+    fun stop()
+    fun stopLooping()
+}

@@ -3,7 +3,7 @@ plugins {
     kotlin("plugin.serialization") version "1.6.0-RC2"
 }
 
-group = "com.gratedgames"
+group = "com.cozmicgames"
 version = "0.1.0"
 
 apply(plugin = "maven-publish")
@@ -31,7 +31,12 @@ kotlin {
         }
     }
     sourceSets {
-        val commonMain by getting
+        val commonMain by getting {
+            dependencies {
+                implementation(kotlin("reflect"))
+            }
+        }
+
         val desktopMain by getting {
             dependencies {
                 val lwjglVersion = "3.3.0"
@@ -54,9 +59,6 @@ kotlin {
 
                 implementation("net.java.jinput:jinput:2.0.9")
                 implementation("net.java.jinput:jinput:2.0.9:natives-all")
-
-                //implementation("com.github.WilliamAHartman:Jamepad:1.4.0")
-                //implementation("uk.co.electronstudio.sdl2gdx:sdl2gdx:1.0.4")
             }
         }
         val webMain by getting
