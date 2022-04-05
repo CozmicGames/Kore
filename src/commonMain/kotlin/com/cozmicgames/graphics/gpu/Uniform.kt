@@ -37,6 +37,12 @@ class IntUniform(val baseUniform: Uniform<Int>) : Uniform<Int>(baseUniform.name,
     }
 }
 
+fun IntUniform.update(vararg values: Int) = update {
+    values.forEachIndexed { index, vector ->
+        it[index] = values[index]
+    }
+}
+
 fun IntUniform.update(vararg vectors: Vector2i) = update {
     vectors.forEachIndexed { index, vector ->
         it[index * 2] = vector.x
@@ -70,6 +76,12 @@ class FloatUniform(val baseUniform: Uniform<Float>) : Uniform<Float>(baseUniform
         baseUniform.update {
             values.copyInto(it)
         }
+    }
+}
+
+fun FloatUniform.update(vararg values: Float) = update {
+    values.forEachIndexed { index, vector ->
+        it[index] = values[index]
     }
 }
 
