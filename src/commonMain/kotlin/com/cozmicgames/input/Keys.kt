@@ -127,6 +127,12 @@ enum class Keys(override val isDisplayable: Boolean = false, override val char: 
     KEY_F12;
 
     companion object {
-        val count = values().size
+        val values = values()
+
+        val count get() = values.size
+
+        fun fromInt(i: Int): Key? {
+            return if (i < 0 || i >= count) null else values[i]
+        }
     }
 }

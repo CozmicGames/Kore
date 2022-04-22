@@ -10,6 +10,12 @@ enum class MouseButtons : MouseButton {
     RIGHT;
 
     companion object {
-        val count = values().size
+        val values = values()
+
+        val count get() = values.size
+
+        fun fromInt(i: Int): MouseButton? {
+            return if (i < 0 || i >= count) null else values[i]
+        }
     }
 }

@@ -22,7 +22,13 @@ enum class GamepadButtons : GamepadButton {
     DPAD_LEFT;
 
     companion object {
-        val count = values().size
+        val values = values()
+
+        val count get() = values.size
+
+        fun fromInt(i: Int): GamepadButton? {
+            return if (i < 0 || i >= count) null else values[i]
+        }
     }
 }
 

@@ -237,3 +237,29 @@ inline fun <T> Array<out T>.sumOf(selector: (T) -> Float): Float {
     }
     return sum
 }
+
+fun <T : Number> Array<T>.average(size: Int = this.size): Double {
+    var sum = 0.0
+    var count = 0
+    for (i in this) {
+        sum += i.toDouble()
+        count++
+
+        if (count >= size)
+            break
+    }
+    return sum / count
+}
+
+fun <T : Number> Array<T>.sum(size: Int = this.size): Double {
+    var sum = 0.0
+    var count = 0
+    for (i in this) {
+        sum += i.toDouble()
+        count++
+
+        if (count >= size)
+            break
+    }
+    return sum
+}
