@@ -26,6 +26,7 @@ class Vector4i() : IntVector<Vector4i>(4) {
         this.x = x
         this.y = y
         this.z = z
+        this.w = w
         return this
     }
 

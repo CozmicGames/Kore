@@ -3,17 +3,17 @@ package com.cozmicgames.utils.maths
 import kotlin.math.abs
 import kotlin.math.max
 
-inline fun intersectPointRect(point: Vector2, minX: Float, minY: Float, maxX: Float, maxY: Float) = intersectPointRect(point.x, point.y, minX, minY, maxX, maxY)
+fun intersectPointRect(point: Vector2, minX: Float, minY: Float, maxX: Float, maxY: Float) = intersectPointRect(point.x, point.y, minX, minY, maxX, maxY)
 
-inline fun intersectPointRect(x: Float, y: Float, minX: Float, minY: Float, maxX: Float, maxY: Float): Boolean {
+fun intersectPointRect(x: Float, y: Float, minX: Float, minY: Float, maxX: Float, maxY: Float): Boolean {
     return minX <= x && minY <= y && maxX >= x && maxY >= y
 }
 
-inline fun intersectRectRect(minX0: Float, minY0: Float, maxX0: Float, maxY0: Float, minX1: Float, minY1: Float, maxX1: Float, maxY1: Float): Boolean {
+fun intersectRectRect(minX0: Float, minY0: Float, maxX0: Float, maxY0: Float, minX1: Float, minY1: Float, maxX1: Float, maxY1: Float): Boolean {
     return maxX0 >= minX1 && maxY0 >= minY1 && minX0 <= maxX1 && minY0 <= maxY1
 }
 
-inline fun intersectRectCirlce(minX: Float, minY: Float, maxX: Float, maxY: Float, centerX: Float, centerY: Float, radius: Float): Boolean {
+fun intersectRectCirlce(minX: Float, minY: Float, maxX: Float, maxY: Float, centerX: Float, centerY: Float, radius: Float): Boolean {
     var radiusSquared = radius * radius
     if (centerX < minX) {
         val d = centerX - minX
@@ -34,11 +34,11 @@ inline fun intersectRectCirlce(minX: Float, minY: Float, maxX: Float, maxY: Floa
     return radiusSquared >= 0.0f
 }
 
-inline fun intersectPointTriangle(point: Vector2, v0: Vector2, v1: Vector2, v2: Vector2) = intersectPointTriangle(point.x, point.y, v0.x, v0.y, v1.x, v1.y, v2.x, v2.y)
+fun intersectPointTriangle(point: Vector2, v0: Vector2, v1: Vector2, v2: Vector2) = intersectPointTriangle(point.x, point.y, v0.x, v0.y, v1.x, v1.y, v2.x, v2.y)
 
-inline fun intersectPointTriangle(point: Vector2, x0: Float, y0: Float, x1: Float, y1: Float, x2: Float, y2: Float) = intersectPointTriangle(point.x, point.y, x0, y0, x1, y1, x2, y2)
+fun intersectPointTriangle(point: Vector2, x0: Float, y0: Float, x1: Float, y1: Float, x2: Float, y2: Float) = intersectPointTriangle(point.x, point.y, x0, y0, x1, y1, x2, y2)
 
-inline fun intersectPointTriangle(x: Float, y: Float, x0: Float, y0: Float, x1: Float, y1: Float, x2: Float, y2: Float): Boolean {
+fun intersectPointTriangle(x: Float, y: Float, x0: Float, y0: Float, x1: Float, y1: Float, x2: Float, y2: Float): Boolean {
     val b0 = (x - x1) * (y0 - y1) - (x0 - x1) * (y - y1) < 0.0f
     val b1 = (x - x2) * (y1 - y2) - (x1 - x2) * (y - y2) < 0.0f
     if (b0 != b1)
@@ -47,22 +47,22 @@ inline fun intersectPointTriangle(x: Float, y: Float, x0: Float, y0: Float, x1: 
     return b1 == b2
 }
 
-inline fun intersectPointCircle(point: Vector2, centerX: Float, centerY: Float, radius: Float) = intersectPointCircle(point.x, point.y, centerX, centerY, radius)
+fun intersectPointCircle(point: Vector2, centerX: Float, centerY: Float, radius: Float) = intersectPointCircle(point.x, point.y, centerX, centerY, radius)
 
-inline fun intersectPointCircle(x: Float, y: Float, centerX: Float, centerY: Float, radius: Float): Boolean {
+fun intersectPointCircle(x: Float, y: Float, centerX: Float, centerY: Float, radius: Float): Boolean {
     val dx = x - centerX
     val dy = y - centerY
     return dx * dx + dy * dy <= radius * radius
 }
 
-inline fun intersectCircleCircle(x0: Float, y0: Float, radius0: Float, x1: Float, y1: Float, radius1: Float): Boolean {
+fun intersectCircleCircle(x0: Float, y0: Float, radius0: Float, x1: Float, y1: Float, radius1: Float): Boolean {
     val dx = x1 - x0
     val dy = y1 - y0
     val r = radius0 + radius1
     return lengthSquared(dx, dy) < r * r
 }
 
-inline fun intersectRayRect(originX: Float, originY: Float, dirX: Float, dirY: Float, minX: Float, minY: Float, maxX: Float, maxY: Float, result: Vector2?): Boolean {
+fun intersectRayRect(originX: Float, originY: Float, dirX: Float, dirY: Float, minX: Float, minY: Float, maxX: Float, maxY: Float, result: Vector2?): Boolean {
     val invDirX = 1.0f / dirX
     val invDirY = 1.0f / dirY
     var tNear: Float
@@ -101,7 +101,7 @@ inline fun intersectRayRect(originX: Float, originY: Float, dirX: Float, dirY: F
     return false
 }
 
-inline fun findSeparatingAxis(verticesA: Array<Vector2>, verticesB: Array<Vector2>, x: Float, y: Float): Boolean {
+fun findSeparatingAxis(verticesA: Array<Vector2>, verticesB: Array<Vector2>, x: Float, y: Float): Boolean {
     var minA = Float.POSITIVE_INFINITY
     var maxA = Float.NEGATIVE_INFINITY
     var minB = Float.POSITIVE_INFINITY
@@ -131,7 +131,7 @@ inline fun findSeparatingAxis(verticesA: Array<Vector2>, verticesB: Array<Vector
     return true
 }
 
-inline fun testPolygonPolygon(verticesA: Array<Vector2>, verticesB: Array<Vector2>): Boolean {
+fun testPolygonPolygon(verticesA: Array<Vector2>, verticesB: Array<Vector2>): Boolean {
     var i = 0
     var j = verticesA.size - 1
     while (i < verticesA.size) {
@@ -156,15 +156,15 @@ inline fun testPolygonPolygon(verticesA: Array<Vector2>, verticesB: Array<Vector
     return true
 }
 
-inline fun intersectAabbAabb(minA: Vector3, maxA: Vector3, minB: Vector3, maxB: Vector3) = intersectAabbAabb(minA.x, minA.y, minA.z, maxA.x, maxA.y, maxA.z, minB.x, minB.y, minB.z, maxB.x, maxB.y, maxB.z)
+fun intersectAabbAabb(minA: Vector3, maxA: Vector3, minB: Vector3, maxB: Vector3) = intersectAabbAabb(minA.x, minA.y, minA.z, maxA.x, maxA.y, maxA.z, minB.x, minB.y, minB.z, maxB.x, maxB.y, maxB.z)
 
-inline fun intersectAabbAabb(minX0: Float, minY0: Float, minZ0: Float, maxX0: Float, maxY0: Float, maxZ0: Float, minX1: Float, minY1: Float, minZ1: Float, maxX1: Float, maxY1: Float, maxZ1: Float): Boolean {
+fun intersectAabbAabb(minX0: Float, minY0: Float, minZ0: Float, maxX0: Float, maxY0: Float, maxZ0: Float, minX1: Float, minY1: Float, minZ1: Float, maxX1: Float, maxY1: Float, maxZ1: Float): Boolean {
     return maxX0 >= minX1 && maxY0 >= minY1 && maxZ0 >= minZ1 && minX0 <= maxX1 && minY0 <= maxY1 && minZ0 <= maxZ1
 }
 
-inline fun intersectObbObb(aCenter: Vector3, aUnitX: Vector3, aUnitY: Vector3, aUnitZ: Vector3, aHalfSize: Vector3, bCenter: Vector3, bUnitX: Vector3, bUnitY: Vector3, bUnitZ: Vector3, bHalfSize: Vector3): Boolean = intersectObbObb(aCenter.x, aCenter.y, aCenter.z, aUnitX.x, aUnitX.y, aUnitX.z, aUnitY.x, aUnitY.y, aUnitY.z, aUnitZ.x, aUnitZ.y, aUnitZ.z, aHalfSize.x, aHalfSize.y, aHalfSize.z, bCenter.x, bCenter.y, bCenter.z, bUnitX.x, bUnitX.y, bUnitX.z, bUnitY.x, bUnitY.y, bUnitY.z, bUnitZ.x, bUnitZ.y, bUnitZ.z, bHalfSize.x, bHalfSize.y, bHalfSize.z)
+fun intersectObbObb(aCenter: Vector3, aUnitX: Vector3, aUnitY: Vector3, aUnitZ: Vector3, aHalfSize: Vector3, bCenter: Vector3, bUnitX: Vector3, bUnitY: Vector3, bUnitZ: Vector3, bHalfSize: Vector3): Boolean = intersectObbObb(aCenter.x, aCenter.y, aCenter.z, aUnitX.x, aUnitX.y, aUnitX.z, aUnitY.x, aUnitY.y, aUnitY.z, aUnitZ.x, aUnitZ.y, aUnitZ.z, aHalfSize.x, aHalfSize.y, aHalfSize.z, bCenter.x, bCenter.y, bCenter.z, bUnitX.x, bUnitX.y, bUnitX.z, bUnitY.x, bUnitY.y, bUnitY.z, bUnitZ.x, bUnitZ.y, bUnitZ.z, bHalfSize.x, bHalfSize.y, bHalfSize.z)
 
-inline fun intersectObbObb(b0cX: Float, b0cY: Float, b0cZ: Float, b0uXx: Float, b0uXy: Float, b0uXz: Float, b0uYx: Float, b0uYy: Float, b0uYz: Float, b0uZx: Float, b0uZy: Float, b0uZz: Float, b0hsX: Float, b0hsY: Float, b0hsZ: Float, b1cX: Float, b1cY: Float, b1cZ: Float, b1uXx: Float, b1uXy: Float, b1uXz: Float, b1uYx: Float, b1uYy: Float, b1uYz: Float, b1uZx: Float, b1uZy: Float, b1uZz: Float, b1hsX: Float, b1hsY: Float, b1hsZ: Float): Boolean {
+fun intersectObbObb(b0cX: Float, b0cY: Float, b0cZ: Float, b0uXx: Float, b0uXy: Float, b0uXz: Float, b0uYx: Float, b0uYy: Float, b0uYz: Float, b0uZx: Float, b0uZy: Float, b0uZz: Float, b0hsX: Float, b0hsY: Float, b0hsZ: Float, b1cX: Float, b1cY: Float, b1cZ: Float, b1uXx: Float, b1uXy: Float, b1uXz: Float, b1uYx: Float, b1uYy: Float, b1uYz: Float, b1uZx: Float, b1uZy: Float, b1uZz: Float, b1hsX: Float, b1hsY: Float, b1hsZ: Float): Boolean {
     var rb: Float
     val rm00 = b0uXx * b1uXx + b0uYx * b1uYx + b0uZx * b1uZx
     val rm10 = b0uXx * b1uXy + b0uYx * b1uYy + b0uZx * b1uZy
@@ -238,11 +238,11 @@ inline fun intersectObbObb(b0cX: Float, b0cY: Float, b0cZ: Float, b0uXx: Float, 
     return abs(tay * rm02 - tax * rm12) <= ra + rb
 }
 
-inline fun intersectRayAabb(ray: Ray, min: Vector3, max: Vector3, result: Vector2?) = intersectRayAabb(ray.origin.x, ray.origin.y, ray.origin.z, ray.direction.x, ray.direction.y, ray.direction.z, min.x, min.y, min.z, max.x, max.y, max.z, result)
+fun intersectRayAabb(ray: Ray, min: Vector3, max: Vector3, result: Vector2?) = intersectRayAabb(ray.origin.x, ray.origin.y, ray.origin.z, ray.direction.x, ray.direction.y, ray.direction.z, min.x, min.y, min.z, max.x, max.y, max.z, result)
 
-inline fun intersectRayAabb(ray: Ray, minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float, result: Vector2?) = intersectRayAabb(ray.origin.x, ray.origin.y, ray.origin.z, ray.direction.x, ray.direction.y, ray.direction.z, minX, minY, minZ, maxX, maxY, maxZ, result)
+fun intersectRayAabb(ray: Ray, minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float, result: Vector2?) = intersectRayAabb(ray.origin.x, ray.origin.y, ray.origin.z, ray.direction.x, ray.direction.y, ray.direction.z, minX, minY, minZ, maxX, maxY, maxZ, result)
 
-inline fun intersectRayAabb(originX: Float, originY: Float, originZ: Float, dirX: Float, dirY: Float, dirZ: Float, minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float, result: Vector2?): Boolean {
+fun intersectRayAabb(originX: Float, originY: Float, originZ: Float, dirX: Float, dirY: Float, dirZ: Float, minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float, result: Vector2?): Boolean {
     val invDirX = 1.0f / dirX
     val invDirY = 1.0f / dirY
     val invDirZ = 1.0f / dirZ
@@ -298,7 +298,7 @@ inline fun intersectRayAabb(originX: Float, originY: Float, originZ: Float, dirX
     return false
 }
 
-inline fun intersectAabbSphere(minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float, centerX: Float, centerY: Float, centerZ: Float, radius: Float): Boolean {
+fun intersectAabbSphere(minX: Float, minY: Float, minZ: Float, maxX: Float, maxY: Float, maxZ: Float, centerX: Float, centerY: Float, centerZ: Float, radius: Float): Boolean {
     var radiusSquared = radius * radius
     if (centerX < minX) {
         val d = centerX - minX

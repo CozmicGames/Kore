@@ -44,6 +44,7 @@ class EventContext {
 
     inline fun <reified T : Any> dispatch(noinline event: () -> T) = dispatch(event, T::class)
 
+    @Suppress("UNCHECKED_CAST")
     fun <T : Any> dispatch(event: () -> T, type: KClass<T>) {
         val list = listenerLists[type] ?: return
         (list as? ListenerList<T>)?.dispatch(event())
@@ -51,6 +52,7 @@ class EventContext {
 
     inline fun <reified T : Any> addListener(listener: EventListener<T>) = addListener(listener, T::class)
 
+    @Suppress("UNCHECKED_CAST")
     fun <T : Any> addListener(listener: EventListener<T>, type: KClass<T>) {
         val list = listenerLists.getOrPut(type) { ListenerList<T>() }
         (list as? ListenerList<T>)?.addListener(listener)
@@ -58,6 +60,7 @@ class EventContext {
 
     inline fun <reified T : Any> removeListener(listener: EventListener<T>) = removeListener(listener, T::class)
 
+    @Suppress("UNCHECKED_CAST")
     fun <T : Any> removeListener(listener: EventListener<T>, type: KClass<T>) {
         val list = listenerLists[type] ?: return
         (list as? ListenerList<T>)?.removeListener(listener)

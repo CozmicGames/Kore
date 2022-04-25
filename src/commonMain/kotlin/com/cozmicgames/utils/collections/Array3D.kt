@@ -20,7 +20,7 @@ class Array3D<T>(val width: Int, val height: Int, val depth: Int, block: ((Int, 
         }
     }
 
-    private inline fun getIndex(x: Int, y: Int, z: Int) = x + y * width + z * height * height
+    private fun getIndex(x: Int, y: Int, z: Int) = x + y * width + z * height * height
 
     operator fun set(x: Int, y: Int, z: Int, value: T?) {
         if (x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth)
@@ -29,6 +29,7 @@ class Array3D<T>(val width: Int, val height: Int, val depth: Int, block: ((Int, 
         data[getIndex(x, y, z)] = value
     }
 
+    @Suppress("UNCHECKED_CAST")
     operator fun get(x: Int, y: Int, z: Int): T? {
         if (x < 0 || x >= width || y < 0 || y >= height || z < 0 || z >= depth)
             return null

@@ -68,6 +68,7 @@ class VertexLayout(block: VertexLayoutBuilder.() -> Unit) : Iterable<String> {
 
     fun getVertexAttributeIndex(name: String) = componentIndices[name]
 
+    @Suppress("UNCHECKED_CAST")
     operator fun <T> get(name: String): VertexComponent<T>? {
         val index = getVertexAttributeIndex(name) ?: return null
         return this[index] as? VertexComponent<T>?

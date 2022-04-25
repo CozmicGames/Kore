@@ -5,9 +5,9 @@ import kotlin.reflect.KProperty
 
 abstract class Vector<T, V : Vector<T, V>> {
     protected class ComponentAccessor(val index: Int) {
-        inline operator fun <T, V : Vector<T, V>> getValue(thisRef: V, property: KProperty<*>) = thisRef.data[index]
+        operator fun <T, V : Vector<T, V>> getValue(thisRef: V, property: KProperty<*>) = thisRef.data[index]
 
-        inline operator fun <T, V : Vector<T, V>> setValue(thisRef: V, property: KProperty<*>, value: T) {
+        operator fun <T, V : Vector<T, V>> setValue(thisRef: V, property: KProperty<*>, value: T) {
             thisRef.data[index] = value
         }
     }
@@ -72,12 +72,12 @@ abstract class Vector<T, V : Vector<T, V>> {
         return true
     }
 
-    inline operator fun component1() = data.component1()
+    operator fun component1() = data.component1()
 
-    inline operator fun component2() = data.component2()
+    operator fun component2() = data.component2()
 
-    inline operator fun component3() = data.component3()
+    operator fun component3() = data.component3()
 
-    inline operator fun component4() = data.component4()
+    operator fun component4() = data.component4()
 }
 

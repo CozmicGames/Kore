@@ -83,9 +83,9 @@ fun Quaternion.setToLookAlong(x: Float, y: Float, z: Float, upX: Float = 0.0f, u
     val upnY = dirnZ * leftX - dirnX * leftZ
     val upnZ = dirnX * leftY - dirnY * leftX
 
-    val x: Float
-    val y: Float
-    val z: Float
+    val xx: Float
+    val yy: Float
+    val zz: Float
     val w: Float
     var t: Float
     val tr = leftX + upnY + dirnZ
@@ -93,38 +93,38 @@ fun Quaternion.setToLookAlong(x: Float, y: Float, z: Float, upX: Float = 0.0f, u
         t = sqrt(tr + 1.0f)
         w = t * 0.5f
         t = 0.5f / t
-        x = (dirnY - upnZ) * t
-        y = (leftZ - dirnX) * t
-        z = (upnX - leftY) * t
+        xx = (dirnY - upnZ) * t
+        yy = (leftZ - dirnX) * t
+        zz = (upnX - leftY) * t
     } else {
         if (leftX > upnY && leftX > dirnZ) {
             t = sqrt(1.0f + leftX - upnY - dirnZ)
-            x = t * 0.5f
+            xx = t * 0.5f
             t = 0.5f / t
-            y = (leftY + upnX) * t
-            z = (dirnX + leftZ) * t
+            yy = (leftY + upnX) * t
+            zz = (dirnX + leftZ) * t
             w = (dirnY - upnZ) * t
         } else if (upnY > dirnZ) {
             t = sqrt(1.0f + upnY - leftX - dirnZ)
-            y = t * 0.5f
+            yy = t * 0.5f
             t = 0.5f / t
-            x = (leftY + upnX) * t
-            z = (upnZ + dirnY) * t
+            xx = (leftY + upnX) * t
+            zz = (upnZ + dirnY) * t
             w = (leftZ - dirnX) * t
         } else {
             t = sqrt(1.0f + dirnZ - leftX - upnY)
-            z = t * 0.5f
+            zz = t * 0.5f
             t = 0.5f / t
-            x = (dirnX + leftZ) * t
-            y = (upnZ + dirnY) * t
+            xx = (dirnX + leftZ) * t
+            yy = (upnZ + dirnY) * t
             w = (upnX - leftY) * t
         }
     }
 
-    this.x = fma(this.w, x, fma(this.x, w, fma(this.y, z, -this.z * y)))
-    this.y = fma(this.w, y, fma(-this.x, z, fma(this.y, w, this.z * x)))
-    this.z = fma(this.w, z, fma(this.x, y, fma(-this.y, x, this.z * w)))
-    this.w = fma(this.w, w, fma(-this.x, x, fma(-this.y, y, -this.z * z)))
+    this.x = fma(this.w, xx, fma(this.x, w, fma(this.y, zz, -this.z * yy)))
+    this.y = fma(this.w, yy, fma(-this.x, zz, fma(this.y, w, this.z * xx)))
+    this.z = fma(this.w, zz, fma(this.x, yy, fma(-this.y, xx, this.z * w)))
+    this.w = fma(this.w, w, fma(-this.x, xx, fma(-this.y, yy, -this.z * zz)))
 
     return this
 }

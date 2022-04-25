@@ -83,6 +83,7 @@ class BufferUniformDefinition(name: String, val content: Array<Property>) : Unif
 
     class ArrayProperty(type: String, name: String, val size: Int) : Property(type, name)
 
+    @Suppress("UNCHECKED_CAST")
     override fun createUniform(pipeline: Pipeline) = requireNotNull(pipeline.getBufferUniform(name)) as Uniform<UniformBuffer>
 }
 

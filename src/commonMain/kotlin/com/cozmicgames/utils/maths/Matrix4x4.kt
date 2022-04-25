@@ -378,13 +378,13 @@ class Matrix4x4 : Resettable {
         return block(rx, ry, rz, rw)
     }
 
-    inline fun transformX(x: Float, y: Float, z: Float, w: Float) = m00 * x + m10 * y + m20 * z + m30 * w
+    fun transformX(x: Float, y: Float, z: Float, w: Float) = m00 * x + m10 * y + m20 * z + m30 * w
 
-    inline fun transformY(x: Float, y: Float, z: Float, w: Float) = m01 * x + m11 * y + m21 * z + m31 * w
+    fun transformY(x: Float, y: Float, z: Float, w: Float) = m01 * x + m11 * y + m21 * z + m31 * w
 
-    inline fun transformZ(x: Float, y: Float, z: Float, w: Float) = m02 * x + m12 * y + m22 * z + m32 * w
+    fun transformZ(x: Float, y: Float, z: Float, w: Float) = m02 * x + m12 * y + m22 * z + m32 * w
 
-    inline fun transformW(x: Float, y: Float, z: Float, w: Float) = m03 * x + m13 * y + m23 * z + m33 * w
+    fun transformW(x: Float, y: Float, z: Float, w: Float) = m03 * x + m13 * y + m23 * z + m33 * w
 
     fun project(vector: Vector4) = project(vector.x, vector.y, vector.z, vector.w) { x, y, z, w -> vector.set(x, y, z, w) }
 

@@ -143,9 +143,9 @@ class Matrix3x2 : Resettable {
         return block(nx, ny)
     }
 
-    inline fun transformX(x: Float, y: Float) = m00 * x + m01 * y + m02
+    fun transformX(x: Float, y: Float) = m00 * x + m01 * y + m02
 
-    inline fun transformY(x: Float, y: Float) = m10 * x + m11 * y + m12
+    fun transformY(x: Float, y: Float) = m10 * x + m11 * y + m12
 
     override fun reset() {
         setIdentity()

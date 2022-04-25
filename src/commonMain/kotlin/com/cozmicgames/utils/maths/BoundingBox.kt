@@ -77,13 +77,13 @@ open class BoundingBox(var x: Float, var y: Float, var z: Float, var width: Floa
         depth = Float.MAX_VALUE
     }
 
-    inline operator fun contains(point: Vector3) = minX <= point.x && minY <= point.y && minZ <= point.z && maxX >= point.x && maxY >= point.y && maxZ >= point.z
+    operator fun contains(point: Vector3) = minX <= point.x && minY <= point.y && minZ <= point.z && maxX >= point.x && maxY >= point.y && maxZ >= point.z
 
-    inline operator fun contains(box: BoundingBox) = minX <= box.minX && minY <= box.minY && minZ <= box.minZ && maxX >= box.maxX && maxY >= box.maxY && maxZ >= box.maxZ
+    operator fun contains(box: BoundingBox) = minX <= box.minX && minY <= box.minY && minZ <= box.minZ && maxX >= box.maxX && maxY >= box.maxY && maxZ >= box.maxZ
 
-    inline infix fun intersects(box: BoundingBox) = intersectAabbAabb(minX, minY, minZ, maxX, maxY, maxZ, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ)
+    infix fun intersects(box: BoundingBox) = intersectAabbAabb(minX, minY, minZ, maxX, maxY, maxZ, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ)
 
-    inline fun merge(point: Vector3) {
+    fun merge(point: Vector3) {
         val minX = min(minX, point.x)
         val maxX = max(maxX, point.x)
         width = maxX - minX
@@ -100,7 +100,7 @@ open class BoundingBox(var x: Float, var y: Float, var z: Float, var width: Floa
         z = minZ
     }
 
-    inline fun merge(box: BoundingBox): BoundingBox {
+    fun merge(box: BoundingBox): BoundingBox {
         if (box in this)
             return this
 

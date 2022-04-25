@@ -12,26 +12,26 @@ class Sphere(var x: Float, var y: Float, var z: Float, var radius: Float) {
         radius = Float.MAX_VALUE
     }
 
-    inline operator fun contains(vector: Vector3): Boolean {
+    operator fun contains(vector: Vector3): Boolean {
         val distX = x - vector.x
         val distY = y - vector.y
         val distZ = z - vector.z
         return (distX * distX + distY * distY + distZ * distZ) <= radius * radius
     }
 
-    inline operator fun contains(sphere: Sphere): Boolean {
+    operator fun contains(sphere: Sphere): Boolean {
         val distX = x - sphere.x
         val distY = y - sphere.y
         val distZ = z - sphere.z
         return (distX * distX + distY * distY + distZ * distZ) <= (radius + sphere.radius) * (radius + sphere.radius)
     }
 
-    inline fun merge(vector: Vector3) {
+    fun merge(vector: Vector3) {
         val length = Vector3(x - vector.x, y - vector.y, z - vector.z).length
         radius = max(radius, length)
     }
 
-    inline fun merge(sphere: Sphere) {
+    fun merge(sphere: Sphere) {
         val length = Vector3(x - sphere.x, y - sphere.y, z - sphere.z).length
         radius = max(radius, length + sphere.radius)
     }

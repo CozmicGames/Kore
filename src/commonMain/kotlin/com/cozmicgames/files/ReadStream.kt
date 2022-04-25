@@ -24,62 +24,62 @@ interface ReadStream : Disposable {
     fun readString(length: Int, charset: Charset = Charsets.UTF8): String
 }
 
-inline fun ReadStream.isEmpty() = availableBytes <= 0
+fun ReadStream.isEmpty() = availableBytes <= 0
 
-inline fun ReadStream.isNotEmpty() = !isEmpty()
+fun ReadStream.isNotEmpty() = !isEmpty()
 
-inline fun ReadStream.readInt8() = readByte().toInt()
+fun ReadStream.readInt8() = readByte().toInt()
 
-inline fun ReadStream.readInt16LE() = (readInt8()) or (readInt8() shl 8)
+fun ReadStream.readInt16LE() = (readInt8()) or (readInt8() shl 8)
 
-inline fun ReadStream.readInt24LE() = (readInt8()) or (readInt8() shl 8) or (readInt8() shl 16)
+fun ReadStream.readInt24LE() = (readInt8()) or (readInt8() shl 8) or (readInt8() shl 16)
 
-inline fun ReadStream.readInt32LE() = (readInt8()) or (readInt8() shl 8) or (readInt8() shl 16) or (readInt8() shl 24)
+fun ReadStream.readInt32LE() = (readInt8()) or (readInt8() shl 8) or (readInt8() shl 16) or (readInt8() shl 24)
 
-inline fun ReadStream.readInt64LE() = readInt32LE().toLong() or (readInt32LE().toLong() shl 32)
+fun ReadStream.readInt64LE() = readInt32LE().toLong() or (readInt32LE().toLong() shl 32)
 
-inline fun ReadStream.readFloat32LE() = Float.fromBits(readInt32LE())
+fun ReadStream.readFloat32LE() = Float.fromBits(readInt32LE())
 
-inline fun ReadStream.readFloat64LE() = Double.fromBits(readInt64LE())
+fun ReadStream.readFloat64LE() = Double.fromBits(readInt64LE())
 
-inline fun ReadStream.readInt16BE() = (readInt8() shl 8) or (readInt8())
+fun ReadStream.readInt16BE() = (readInt8() shl 8) or (readInt8())
 
-inline fun ReadStream.readInt24BE() = (readInt8() shl 16) or (readInt8() shl 8) or (readInt8())
+fun ReadStream.readInt24BE() = (readInt8() shl 16) or (readInt8() shl 8) or (readInt8())
 
-inline fun ReadStream.readInt32BE() = (readInt8() shl 24) or (readInt8() shl 16) or (readInt8() shl 8) or (readInt8())
+fun ReadStream.readInt32BE() = (readInt8() shl 24) or (readInt8() shl 16) or (readInt8() shl 8) or (readInt8())
 
-inline fun ReadStream.readInt64BE() = (readInt32BE().toLong() shl 32) or (readInt32BE().toLong())
+fun ReadStream.readInt64BE() = (readInt32BE().toLong() shl 32) or (readInt32BE().toLong())
 
-inline fun ReadStream.readFloat32BE() = Float.fromBits(readInt32BE())
+fun ReadStream.readFloat32BE() = Float.fromBits(readInt32BE())
 
-inline fun ReadStream.readFloat64BE() = Double.fromBits(readInt64BE())
+fun ReadStream.readFloat64BE() = Double.fromBits(readInt64BE())
 
-inline fun ReadStream.readInt16(endianness: Files.Endianness = Kore.files.nativeEndianness) = when (endianness) {
+fun ReadStream.readInt16(endianness: Files.Endianness = Kore.files.nativeEndianness) = when (endianness) {
     Files.Endianness.LITTLE_ENDIAN -> readInt16LE()
     Files.Endianness.BIG_ENDIAN -> readInt16BE()
 }
 
-inline fun ReadStream.readInt24(endianness: Files.Endianness = Kore.files.nativeEndianness) = when (endianness) {
+fun ReadStream.readInt24(endianness: Files.Endianness = Kore.files.nativeEndianness) = when (endianness) {
     Files.Endianness.LITTLE_ENDIAN -> readInt24LE()
     Files.Endianness.BIG_ENDIAN -> readInt24BE()
 }
 
-inline fun ReadStream.readInt32(endianness: Files.Endianness = Kore.files.nativeEndianness) = when (endianness) {
+fun ReadStream.readInt32(endianness: Files.Endianness = Kore.files.nativeEndianness) = when (endianness) {
     Files.Endianness.LITTLE_ENDIAN -> readInt32LE()
     Files.Endianness.BIG_ENDIAN -> readInt32BE()
 }
 
-inline fun ReadStream.readInt64(endianness: Files.Endianness = Kore.files.nativeEndianness) = when (endianness) {
+fun ReadStream.readInt64(endianness: Files.Endianness = Kore.files.nativeEndianness) = when (endianness) {
     Files.Endianness.LITTLE_ENDIAN -> readInt64LE()
     Files.Endianness.BIG_ENDIAN -> readInt64BE()
 }
 
-inline fun ReadStream.readFloat32(endianness: Files.Endianness = Kore.files.nativeEndianness) = when (endianness) {
+fun ReadStream.readFloat32(endianness: Files.Endianness = Kore.files.nativeEndianness) = when (endianness) {
     Files.Endianness.LITTLE_ENDIAN -> readFloat32LE()
     Files.Endianness.BIG_ENDIAN -> readFloat32BE()
 }
 
-inline fun ReadStream.readFloat64(endianness: Files.Endianness = Kore.files.nativeEndianness) = when (endianness) {
+fun ReadStream.readFloat64(endianness: Files.Endianness = Kore.files.nativeEndianness) = when (endianness) {
     Files.Endianness.LITTLE_ENDIAN -> readFloat64LE()
     Files.Endianness.BIG_ENDIAN -> readFloat64BE()
 }

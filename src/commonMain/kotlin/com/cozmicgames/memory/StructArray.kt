@@ -46,8 +46,10 @@ class StructArray<T : Struct>(val size: Int, supplier: () -> T) : Iterable<T>, D
         }
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun iterator() = structs.iterator() as Iterator<T>
 
+    @Suppress("UNCHECKED_CAST")
     operator fun get(index: Int) = structs[index] as T
 
     override fun dispose() {

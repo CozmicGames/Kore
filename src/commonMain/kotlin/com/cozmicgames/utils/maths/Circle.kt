@@ -11,24 +11,24 @@ open class Circle(var x: Float, var y: Float, var radius: Float) {
         radius = Float.MAX_VALUE
     }
 
-    inline operator fun contains(point: Vector2): Boolean {
+    operator fun contains(point: Vector2): Boolean {
         val distX = x - point.x
         val distY = y - point.y
         return (distX * distX + distY * distY) <= radius * radius
     }
 
-    inline operator fun contains(circle: Circle): Boolean {
+    operator fun contains(circle: Circle): Boolean {
         val distX = x - circle.x
         val distY = y - circle.y
         return (distX * distX + distY * distY) <= (radius + circle.radius) * (radius + circle.radius)
     }
 
-    inline fun merge(point: Vector2) {
+    fun merge(point: Vector2) {
         val length = Vector2(x - point.x, y - point.y).length
         radius = max(radius, length)
     }
 
-    inline fun merge(circle: Circle) {
+    fun merge(circle: Circle) {
         val length = Vector2(x - circle.x, y - circle.y).length
         radius = max(radius, length + circle.radius)
     }

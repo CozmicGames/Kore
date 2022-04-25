@@ -21,6 +21,7 @@ class DynamicArray<T>(initialSize: Int = 10) : MutableIterable<T>, Disposable {
             removeIndex(indexOf(element)) != null
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun removeIndex(index: Int): T? {
         if (index < 0 || index >= size)
             return null
@@ -51,6 +52,7 @@ class DynamicArray<T>(initialSize: Int = 10) : MutableIterable<T>, Disposable {
         size = max(size, index + 1)
     }
 
+    @Suppress("UNCHECKED_CAST")
     operator fun get(index: Int): T? {
         if (index < 0 || index >= size)
             return null
@@ -76,6 +78,7 @@ class DynamicArray<T>(initialSize: Int = 10) : MutableIterable<T>, Disposable {
             return false
         }
 
+        @Suppress("UNCHECKED_CAST")
         override fun next(): T {
             while (index < size) {
                 val element = elements[index++]

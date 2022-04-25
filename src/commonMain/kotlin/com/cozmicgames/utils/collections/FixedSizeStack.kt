@@ -9,6 +9,7 @@ class FixedSizeStack<T>(val capacity: Int) : Stack<T> {
 
     override val isEmpty get() = size == 0
 
+    @Suppress("UNCHECKED_CAST")
     override val current get() = if (size == 0) null else requireNotNull(values[(offset + size - 1) % capacity] as? T?)
 
     val isFull get() = size == capacity
@@ -21,16 +22,19 @@ class FixedSizeStack<T>(val capacity: Int) : Stack<T> {
             size++
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun pop(): T {
         size--
         return requireNotNull(values[(offset + size) % capacity] as? T?)
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun peek(): T {
         values[(offset + size - 1) % capacity] as? T?
         return requireNotNull(values[size - 1] as? T?)
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun forEach(descending: Boolean, block: (T) -> Unit) {
         if (descending) {
             var i = size

@@ -4,158 +4,158 @@ import com.cozmicgames.utils.ByteArrayBuilder
 import com.cozmicgames.utils.hashCodeOf
 import kotlin.reflect.KProperty
 
-inline fun <T> Array<T>.indexOf(element: T): Int? {
+fun <T> Array<T>.indexOf(element: T): Int? {
     for (i in indices)
         if (this[i] == element)
             return i
     return null
 }
 
-inline fun ByteArray.indexOf(element: Byte): Int? {
+fun ByteArray.indexOf(element: Byte): Int? {
     for (i in indices)
         if (this[i] == element)
             return i
     return null
 }
 
-inline fun CharArray.indexOf(element: Char): Int? {
+fun CharArray.indexOf(element: Char): Int? {
     for (i in indices)
         if (this[i] == element)
             return i
     return null
 }
 
-inline fun ShortArray.indexOf(element: Short): Int? {
+fun ShortArray.indexOf(element: Short): Int? {
     for (i in indices)
         if (this[i] == element)
             return i
     return null
 }
 
-inline fun IntArray.indexOf(element: Int): Int? {
+fun IntArray.indexOf(element: Int): Int? {
     for (i in indices)
         if (this[i] == element)
             return i
     return null
 }
 
-inline fun LongArray.indexOf(element: Long): Int? {
+fun LongArray.indexOf(element: Long): Int? {
     for (i in indices)
         if (this[i] == element)
             return i
     return null
 }
 
-inline fun FloatArray.indexOf(element: Float): Int? {
+fun FloatArray.indexOf(element: Float): Int? {
     for (i in indices)
         if (this[i] == element)
             return i
     return null
 }
 
-inline fun DoubleArray.indexOf(element: Double): Int? {
+fun DoubleArray.indexOf(element: Double): Int? {
     for (i in indices)
         if (this[i] == element)
             return i
     return null
 }
 
-inline fun BooleanArray.indexOf(element: Boolean): Int? {
+fun BooleanArray.indexOf(element: Boolean): Int? {
     for (i in indices)
         if (this[i] == element)
             return i
     return null
 }
 
-inline fun <T> Array<T>.fill(element: T, start: Int = 0, end: Int = size) {
+fun <T> Array<T>.fill(element: T, start: Int = 0, end: Int = size) {
     for (i in (start until end))
         this[i] = element
 }
 
-inline fun ByteArray.fill(element: Byte, start: Int = 0, end: Int = size) {
+fun ByteArray.fill(element: Byte, start: Int = 0, end: Int = size) {
     for (i in (start until end))
         this[i] = element
 }
 
-inline fun CharArray.fill(element: Char, start: Int = 0, end: Int = size) {
+fun CharArray.fill(element: Char, start: Int = 0, end: Int = size) {
     for (i in (start until end))
         this[i] = element
 }
 
-inline fun ShortArray.fill(element: Short, start: Int = 0, end: Int = size) {
+fun ShortArray.fill(element: Short, start: Int = 0, end: Int = size) {
     for (i in (start until end))
         this[i] = element
 }
 
-inline fun IntArray.fill(element: Int, start: Int = 0, end: Int = size) {
+fun IntArray.fill(element: Int, start: Int = 0, end: Int = size) {
     for (i in (start until end))
         this[i] = element
 }
 
-inline fun LongArray.fill(element: Long, start: Int = 0, end: Int = size) {
+fun LongArray.fill(element: Long, start: Int = 0, end: Int = size) {
     for (i in (start until end))
         this[i] = element
 }
 
-inline fun FloatArray.fill(element: Float, start: Int = 0, end: Int = size) {
+fun FloatArray.fill(element: Float, start: Int = 0, end: Int = size) {
     for (i in (start until end))
         this[i] = element
 }
 
-inline fun DoubleArray.fill(element: Double, start: Int = 0, end: Int = size) {
+fun DoubleArray.fill(element: Double, start: Int = 0, end: Int = size) {
     for (i in (start until end))
         this[i] = element
 }
 
-inline fun BooleanArray.fill(element: Boolean, start: Int = 0, end: Int = size) {
+fun BooleanArray.fill(element: Boolean, start: Int = 0, end: Int = size) {
     for (i in (start until end))
         this[i] = element
 }
 
-inline fun read8(index: Int, access: (Int) -> Byte) = access(index).toInt() and 0xFF
+fun read8(index: Int, access: (Int) -> Byte) = access(index).toInt() and 0xFF
 
-inline fun read16(index: Int, access: (Int) -> Byte): Int {
+fun read16(index: Int, access: (Int) -> Byte): Int {
     return read8(index, access) or (read8(index + 1, access) shl 8)
 }
 
-inline fun read32(index: Int, access: (Int) -> Byte): Int {
+fun read32(index: Int, access: (Int) -> Byte): Int {
     return read16(index, access) or (read16(index + 2, access) shl 16)
 }
 
-inline fun read64(index: Int, access: (Int) -> Byte): Long {
+fun read64(index: Int, access: (Int) -> Byte): Long {
     return read32(index, access).toLong() or (read32(index + 4, access).toLong() shl 32)
 }
 
-inline fun write8(index: Int, value: Int, access: (Int, Byte) -> Unit) = access(index, (value and 0xFF).toByte())
+fun write8(index: Int, value: Int, access: (Int, Byte) -> Unit) = access(index, (value and 0xFF).toByte())
 
-inline fun write16(index: Int, value: Int, access: (Int, Byte) -> Unit) {
+fun write16(index: Int, value: Int, access: (Int, Byte) -> Unit) {
     write8(index, (value and 0xFF), access)
     write8(index + 1, ((value and 0xFF00) shr 8), access)
 }
 
-inline fun write32(index: Int, value: Int, access: (Int, Byte) -> Unit) {
+fun write32(index: Int, value: Int, access: (Int, Byte) -> Unit) {
     write16(index, (value and 0xFFFF), access)
     write16(index + 2, ((value and 0xFFFF0000.toInt()) ushr 32), access)
 }
 
-inline fun write64(index: Int, value: Long, access: (Int, Byte) -> Unit) {
+fun write64(index: Int, value: Long, access: (Int, Byte) -> Unit) {
     write32(index, (value and 0xFFFFFFFFL).toInt(), access)
     write32(index + 2, ((value and (0xFFFFFFFF shl 32)).toInt() ushr 32), access)
 }
 
-inline fun ByteArray.read8(index: Int) = read8(index) { this[it] }
+fun ByteArray.read8(index: Int) = read8(index) { this[it] }
 
-inline fun ByteArray.read16(index: Int) = read16(index) { this[it] }
+fun ByteArray.read16(index: Int) = read16(index) { this[it] }
 
-inline fun ByteArray.read32(index: Int) = read32(index) { this[it] }
+fun ByteArray.read32(index: Int) = read32(index) { this[it] }
 
-inline fun ByteArray.write8(index: Int, value: Int) = write8(index, value) { i, v -> this[i] = v }
+fun ByteArray.write8(index: Int, value: Int) = write8(index, value) { i, v -> this[i] = v }
 
-inline fun ByteArray.write16(index: Int, value: Int) = write16(index, value) { i, v -> this[i] = v }
+fun ByteArray.write16(index: Int, value: Int) = write16(index, value) { i, v -> this[i] = v }
 
-inline fun ByteArray.write32(index: Int, value: Int) = write32(index, value) { i, v -> this[i] = v }
+fun ByteArray.write32(index: Int, value: Int) = write32(index, value) { i, v -> this[i] = v }
 
-inline fun ByteArray.write64(index: Int, value: Long) = write64(index, value) { i, v -> this[i] = v }
+fun ByteArray.write64(index: Int, value: Long) = write64(index, value) { i, v -> this[i] = v }
 
 class ArrayElement<T>(val array: Array<T>, val index: Int) {
     operator fun getValue(thisRef: Any, property: KProperty<*>) = array[index]
@@ -230,7 +230,7 @@ fun <T : Any> Array<T>.swap(indexA: Int, indexB: Int) {
 }
 
 @kotlin.jvm.JvmName("sumOfFloat")
-inline fun <T> Array<out T>.sumOf(selector: (T) -> Float): Float {
+fun <T> Array<out T>.sumOf(selector: (T) -> Float): Float {
     var sum = 0.0f
     for (element in this) {
         sum += selector(element)

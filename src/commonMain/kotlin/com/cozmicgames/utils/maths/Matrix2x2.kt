@@ -85,6 +85,10 @@ class Matrix2x2 : Resettable {
         val nm01 = m00 * other.m01 + m01 * other.m11
         val nm10 = m10 * other.m00 + m11 * other.m10
         val nm11 = m10 * other.m01 + m11 * other.m11
+        m00 = nm00
+        m01 = nm01
+        m10 = nm10
+        m11 = nm11
         return this
     }
 
@@ -96,9 +100,9 @@ class Matrix2x2 : Resettable {
         return block(nx, ny)
     }
 
-    inline fun transformX(x: Float, y: Float) = m00 * x + m01 * y
+    fun transformX(x: Float, y: Float) = m00 * x + m01 * y
 
-    inline fun transformY(x: Float, y: Float) = m10 * x + m11 * y
+    fun transformY(x: Float, y: Float) = m10 * x + m11 * y
 
     override fun reset() {
         setIdentity()

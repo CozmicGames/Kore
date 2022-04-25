@@ -3,21 +3,25 @@ package com.cozmicgames.utils.maths
 abstract class IntVector<V : IntVector<V>>(size: Int) : Vector<Int, V>() {
     override val data = Array(size) { 0 }
 
+    @Suppress("UNCHECKED_CAST")
     override fun set(vector: V): V {
         vector.data.copyInto(data)
         return this as V
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun set(scalar: Int): V {
         data.fill(scalar)
         return this as V
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun setZero(): V {
         data.fill(0)
         return this as V
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun add(vector: V): V {
         repeat(size) {
             data[it] += vector.data[it]
@@ -25,6 +29,7 @@ abstract class IntVector<V : IntVector<V>>(size: Int) : Vector<Int, V>() {
         return this as V
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun sub(vector: V): V {
         repeat(size) {
             data[it] -= vector.data[it]
@@ -32,6 +37,7 @@ abstract class IntVector<V : IntVector<V>>(size: Int) : Vector<Int, V>() {
         return this as V
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun mul(vector: V): V {
         repeat(size) {
             data[it] *= vector.data[it]
@@ -39,6 +45,7 @@ abstract class IntVector<V : IntVector<V>>(size: Int) : Vector<Int, V>() {
         return this as V
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun div(vector: V): V {
         repeat(size) {
             data[it] /= vector.data[it]
@@ -46,6 +53,7 @@ abstract class IntVector<V : IntVector<V>>(size: Int) : Vector<Int, V>() {
         return this as V
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun add(scalar: Int): V {
         repeat(size) {
             data[it] += scalar
@@ -53,6 +61,7 @@ abstract class IntVector<V : IntVector<V>>(size: Int) : Vector<Int, V>() {
         return this as V
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun sub(scalar: Int): V {
         repeat(size) {
             data[it] -= scalar
@@ -60,6 +69,7 @@ abstract class IntVector<V : IntVector<V>>(size: Int) : Vector<Int, V>() {
         return this as V
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun mul(scalar: Int): V {
         repeat(size) {
             data[it] *= scalar
@@ -67,6 +77,7 @@ abstract class IntVector<V : IntVector<V>>(size: Int) : Vector<Int, V>() {
         return this as V
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun div(scalar: Int): V {
         repeat(size) {
             data[it] /= scalar
@@ -74,6 +85,7 @@ abstract class IntVector<V : IntVector<V>>(size: Int) : Vector<Int, V>() {
         return this as V
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun lerp(vector: V, alpha: Float): V {
         val oneMinusAplpha = 1.0f - alpha
         repeat(size) {

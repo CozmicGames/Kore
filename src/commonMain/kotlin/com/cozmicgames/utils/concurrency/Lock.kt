@@ -15,4 +15,4 @@ class SharedProperty<T : Any>(private var value: T) {
     operator fun setValue(thisRef: Any, property: KProperty<*>, value: T) = lock.write { this.value = value }
 }
 
-inline fun <T : Any> shared(value: T) = SharedProperty(value)
+fun <T : Any> shared(value: T) = SharedProperty(value)

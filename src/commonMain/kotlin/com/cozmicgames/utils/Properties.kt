@@ -101,26 +101,31 @@ open class Properties {
         return value.value as? Properties
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun getIntArray(name: String): Array<Int>? {
         val value = getValue(name) ?: return null
         return value.value as? Array<Int>
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun getFloatArray(name: String): Array<Float>? {
         val value = getValue(name) ?: return null
         return value.value as? Array<Float>
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun getBooleanArray(name: String): Array<Boolean>? {
         val value = getValue(name) ?: return null
         return value.value as? Array<Boolean>
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun getStringArray(name: String): Array<String>? {
         val value = getValue(name) ?: return null
         return value.value as? Array<String>
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun getPropertiesArray(name: String): Array<Properties>? {
         val value = getValue(name) ?: return null
         return value.value as? Array<Properties>

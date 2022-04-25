@@ -67,4 +67,4 @@ inline val String.directory: String
         return substring(0, if (indexOfSlash == -1) length else indexOfSlash + 1)
     }
 
-inline fun String.words(vararg delimiters: String = whitespaceCharacters()) = StringStream(this).getWords(*delimiters)
+fun String.words(vararg delimiters: String = whitespaceCharacters()) = StringStream(this).getWords(*delimiters)

@@ -34,6 +34,7 @@ class PipelineDefinition() {
         sections.remove(type)
     }
 
+    @Suppress("UNCHECKED_CAST")
     fun <T : DefinitionSection> getSection(type: DefinitionSection.Type) = sections[type] as? T
 
     fun load(file: String, type: Files.Type, charset: Charset = Charsets.UTF8) {

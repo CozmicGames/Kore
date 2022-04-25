@@ -18,7 +18,7 @@ class Array2D<T>(val width: Int, val height: Int, block: ((Int, Int) -> T)? = nu
         }
     }
 
-    private inline fun getIndex(x: Int, y: Int) = x + y * width
+    private fun getIndex(x: Int, y: Int) = x + y * width
 
     operator fun set(x: Int, y: Int, value: T?) {
         if (x < 0 || x >= width || y < 0 || y >= height)
@@ -27,6 +27,7 @@ class Array2D<T>(val width: Int, val height: Int, block: ((Int, Int) -> T)? = nu
         data[getIndex(x, y)] = value
     }
 
+    @Suppress("UNCHECKED_CAST")
     operator fun get(x: Int, y: Int): T? {
         if (x < 0 || x >= width || y < 0 || y >= height)
             return null

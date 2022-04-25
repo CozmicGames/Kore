@@ -28,23 +28,23 @@ val FLOAT_EPSILON by lazy {
 
 private val random = Random(Time.current.toLong())
 
-inline fun toDegrees(radians: Float) = radians * 180.0f / PI
+fun toDegrees(radians: Float) = radians * 180.0f / PI
 
-inline fun toRadians(degrees: Float) = degrees * PI / 180.0f
+fun toRadians(degrees: Float) = degrees * PI / 180.0f
 
-inline fun Float.smoothstep(edge0: Float, edge1: Float): Float {
+fun Float.smoothstep(edge0: Float, edge1: Float): Float {
     val v = (this - edge0) / (edge1 - edge0)
     val step2 = v.clamp(0.0f, 1.0f)
     return step2 * step2 * (3 - 2 * step2)
 }
 
-inline fun Float.convertRange(minSrc: Float, maxSrc: Float, minDst: Float, maxDst: Float): Float = (((this - minSrc) / (maxSrc - minSrc)) * (maxDst - minDst)) + minDst
+fun Float.convertRange(minSrc: Float, maxSrc: Float, minDst: Float, maxDst: Float): Float = (((this - minSrc) / (maxSrc - minSrc)) * (maxDst - minDst)) + minDst
 
-inline fun lerp(min: Float, max: Float, t: Float) = min + (max - min) * t
+fun lerp(min: Float, max: Float, t: Float) = min + (max - min) * t
 
-inline fun mix(a: Float, b: Float, x: Float) = a * (1.0f - x) + b * x
+fun mix(a: Float, b: Float, x: Float) = a * (1.0f - x) + b * x
 
-inline fun fract(v: Float) = v % 1
+fun fract(v: Float) = v % 1
 
 fun randomInt(range: IntRange? = null) = if (range == null) random.nextInt() else random.nextInt(range.first, range.last)
 
@@ -56,13 +56,13 @@ fun randomBoolean() = random.nextBoolean()
 
 fun randomBytes(array: ByteArray, offset: Int = 0, length: Int = array.size - offset) = random.nextBytes(array, offset, offset + length)
 
-inline fun det(x0: Float, y0: Float, x1: Float, y1: Float) = x0 * y1 - y0 * x1
+fun det(x0: Float, y0: Float, x1: Float, y1: Float) = x0 * y1 - y0 * x1
 
-inline fun isCCW(p: Vector2, q: Vector2, r: Vector2) = det(q.x - p.x, q.y - p.y, r.x - p.x, r.y - p.y) >= 0.0f
+fun isCCW(p: Vector2, q: Vector2, r: Vector2) = det(q.x - p.x, q.y - p.y, r.x - p.x, r.y - p.y) >= 0.0f
 
-inline fun areCollinear(p: Vector2, q: Vector2, r: Vector2) = abs(det(q.x - p.x, q.y - p.y, r.x - p.x, r.y - p.y)) <= 1e-32f
+fun areCollinear(p: Vector2, q: Vector2, r: Vector2) = abs(det(q.x - p.x, q.y - p.y, r.x - p.x, r.y - p.y)) <= 1e-32f
 
-inline fun arePointsOnSameSide(a: Vector2, b: Vector2, c: Vector2, d: Vector2): Boolean {
+fun arePointsOnSameSide(a: Vector2, b: Vector2, c: Vector2, d: Vector2): Boolean {
     val px = d.x - c.x
     val py = d.y - c.y
     val l = det(px, py, a.x - c.x, a.y - c.y)
@@ -70,9 +70,9 @@ inline fun arePointsOnSameSide(a: Vector2, b: Vector2, c: Vector2, d: Vector2): 
     return l * m >= 0.0f
 }
 
-inline fun isPointInTriangle(p: Vector2, a: Vector2, b: Vector2, c: Vector2) = arePointsOnSameSide(p, a, b, c) && arePointsOnSameSide(p, b, a, c) && arePointsOnSameSide(p, c, a, b)
+fun isPointInTriangle(p: Vector2, a: Vector2, b: Vector2, c: Vector2) = arePointsOnSameSide(p, a, b, c) && arePointsOnSameSide(p, b, a, c) && arePointsOnSameSide(p, c, a, b)
 
-inline fun isAnyPointInTriangle(points: Iterable<Vector2>, a: Vector2, b: Vector2, c: Vector2): Boolean {
+fun isAnyPointInTriangle(points: Iterable<Vector2>, a: Vector2, b: Vector2, c: Vector2): Boolean {
     for (point in points)
         if (point != a && point != b && point != c && isPointInTriangle(point, a, b, c))
             return true
@@ -80,13 +80,13 @@ inline fun isAnyPointInTriangle(points: Iterable<Vector2>, a: Vector2, b: Vector
     return false
 }
 
-inline fun isEar(points: Iterable<Vector2>, p: Vector2, q: Vector2, r: Vector2) = isCCW(p, q, r) && isAnyPointInTriangle(points, p, q, r)
+fun isEar(points: Iterable<Vector2>, p: Vector2, q: Vector2, r: Vector2) = isCCW(p, q, r) && isAnyPointInTriangle(points, p, q, r)
 
-inline fun fma(a: Float, b: Float, c: Float) = a * b + c
+fun fma(a: Float, b: Float, c: Float) = a * b + c
 
 fun smoothDamp(current: Vector2, target: Vector2, currentVelocity: Vector2, smoothingTime: Float, maxSpeed: Float, deltaTime: Float, dest: Vector2 = Vector2()): Vector2 {
-    var outputX = 0.0f
-    var outputY = 0.0f
+    var outputX: Float
+    var outputY: Float
     val omega = 2.0f / max(FLOAT_EPSILON, smoothingTime)
     val x = omega * deltaTime
     val exp = 1.0f / (1.0f + x + 0.48f * x * x + 0.235f * x * x * x)
@@ -128,9 +128,9 @@ fun smoothDamp(current: Vector2, target: Vector2, currentVelocity: Vector2, smoo
 }
 
 fun smoothDamp(current: Vector3, target: Vector3, currentVelocity: Vector3, smoothingTime: Float, maxSpeed: Float, deltaTime: Float, dest: Vector3 = Vector3()): Vector3 {
-    var outputX = 0.0f
-    var outputY = 0.0f
-    var outputZ = 0.0f
+    var outputX: Float
+    var outputY: Float
+    var outputZ: Float
     val omega = 2.0f / max(FLOAT_EPSILON, smoothingTime)
     val x = omega * deltaTime
     val exp = 1.0f / (1.0f + x + 0.48f * x * x + 0.235f * x * x * x)
@@ -181,7 +181,7 @@ fun smoothDamp(current: Vector3, target: Vector3, currentVelocity: Vector3, smoo
     return dest.set(outputX, outputY, outputZ)
 }
 
-inline fun forEachLinePoint(x0: Int, y0: Int, x1: Int, y1: Int, block: (Int, Int) -> Unit) {
+fun forEachLinePoint(x0: Int, y0: Int, x1: Int, y1: Int, block: (Int, Int) -> Unit) {
     var d = 0
     val dx = abs(x1 - x0)
     val dy = abs(y1 - y0)

@@ -55,15 +55,15 @@ open class Rectangle(var x: Float, var y: Float, var width: Float, var height: F
         height = -Float.MAX_VALUE
     }
 
-    inline operator fun contains(point: Vector2) = minX <= point.x && minY <= point.y && maxX >= point.x && maxY >= point.y
+    operator fun contains(point: Vector2) = minX <= point.x && minY <= point.y && maxX >= point.x && maxY >= point.y
 
-    inline operator fun contains(rectangle: Rectangle) = minX <= rectangle.minX && minY <= rectangle.minY && maxX >= rectangle.maxX && maxY >= rectangle.maxY
+    operator fun contains(rectangle: Rectangle) = minX <= rectangle.minX && minY <= rectangle.minY && maxX >= rectangle.maxX && maxY >= rectangle.maxY
 
-    inline infix fun intersects(rectangle: Rectangle) = intersectRectRect(minX, minY, maxX, maxY, rectangle.minX, rectangle.minY, rectangle.maxX, rectangle.maxY)
+    infix fun intersects(rectangle: Rectangle) = intersectRectRect(minX, minY, maxX, maxY, rectangle.minX, rectangle.minY, rectangle.maxX, rectangle.maxY)
 
-    inline fun merge(point: Vector2) = merge(point.x, point.y)
+    fun merge(point: Vector2) = merge(point.x, point.y)
 
-    inline fun merge(x: Float, y: Float) {
+    fun merge(x: Float, y: Float) {
         val minX = min(minX, x)
         val maxX = max(maxX, x)
         width = maxX - minX
@@ -74,7 +74,7 @@ open class Rectangle(var x: Float, var y: Float, var width: Float, var height: F
         this.y = minY
     }
 
-    inline fun merge(rectangle: Rectangle) {
+    fun merge(rectangle: Rectangle) {
         val minX = min(minX, rectangle.minX)
         val maxX = max(maxX, rectangle.maxX)
         width = maxX - minX

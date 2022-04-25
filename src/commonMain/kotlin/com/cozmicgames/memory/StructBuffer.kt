@@ -47,8 +47,10 @@ class StructBuffer<T : Struct>(size: Int, private val allocator: Allocator, priv
         this.size = size
     }
 
+    @Suppress("UNCHECKED_CAST")
     override fun iterator() = structs.iterator() as Iterator<T>
 
+    @Suppress("UNCHECKED_CAST")
     operator fun get(index: Int) = structs[index] as T
 
     override fun dispose() {

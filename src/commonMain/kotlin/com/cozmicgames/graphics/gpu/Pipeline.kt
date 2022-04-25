@@ -115,15 +115,15 @@ abstract class Pipeline : Disposable {
     abstract fun <T : Any> getUniform(name: String): Uniform<T>?
 }
 
-inline fun colorMask(noinline block: Pipeline.ColorMask.() -> Unit) = Pipeline.ColorMask(block)
+fun colorMask(block: Pipeline.ColorMask.() -> Unit) = Pipeline.ColorMask(block)
 
-inline fun depthState(noinline block: Pipeline.DepthState.() -> Unit) = Pipeline.DepthState(block)
+fun depthState(block: Pipeline.DepthState.() -> Unit) = Pipeline.DepthState(block)
 
-inline fun stencilState(noinline block: Pipeline.StencilState.() -> Unit) = Pipeline.StencilState(block)
+fun stencilState(block: Pipeline.StencilState.() -> Unit) = Pipeline.StencilState(block)
 
-inline fun blendState(noinline block: Pipeline.BlendState.() -> Unit) = Pipeline.BlendState(block)
+fun blendState(block: Pipeline.BlendState.() -> Unit) = Pipeline.BlendState(block)
 
-inline fun cullState(noinline block: Pipeline.CullState.() -> Unit) = Pipeline.CullState(block)
+fun cullState(block: Pipeline.CullState.() -> Unit) = Pipeline.CullState(block)
 
 fun backFaceCulling() = cullState {
     back = true
