@@ -6,7 +6,20 @@ import com.cozmicgames.graphics.gpu.Texture
 import com.cozmicgames.graphics.gpu.Texture2D
 import kotlin.math.min
 
+/**
+ * Creates mipmaps from the gives [Image].
+ *
+ * @param image The image to create mipmaps from.
+ * @param minSize The minimum size of a mip level.
+ */
 class MipMapImage(image: Image, minSize: Int = 1) : Iterable<MipMapImage.Level> {
+    /**
+     * A single mip level.
+     *
+     * @param image The image for this level.
+     * @param width The width of this level.
+     * @param height The height of this level.
+     */
     class Level(image: Image, width: Int, height: Int) {
         val image = Image(width, height)
 
@@ -15,9 +28,12 @@ class MipMapImage(image: Image, minSize: Int = 1) : Iterable<MipMapImage.Level> 
         }
     }
 
-    private val levels: Array<Level>
-
+    /**
+     * The number of levels.
+     */
     val numLevels get() = levels.size
+
+    private val levels: Array<Level>
 
     init {
         var size = min(image.width, image.height)
@@ -46,11 +62,32 @@ class MipMapImage(image: Image, minSize: Int = 1) : Iterable<MipMapImage.Level> 
         levels = levelsList.toTypedArray()
     }
 
+    /**
+     * Gets an iterator over the levels.
+     *
+     * @return An iterator over the levels.
+     */
     override fun iterator() = levels.iterator()
 
+    /**
+     * Gets the level at the given index.
+     *
+     * @param level The index of the level to get.
+     *
+     * @return The level at the given index.
+     */
     operator fun get(level: Int) = levels[level]
 }
 
+/**
+ * Creates a [Texture2D] from the image.
+ * @see [Graphics.createTexture2D]
+ *
+ * @param format The format of the texture. Defaults to [Texture.Format.RGBA8_UNORM].
+ * @param block The block to execute to configure the texture.
+ *
+ * @return The created texture.
+ */
 fun MipMapImage.toTexture2D(format: Texture.Format = Texture.Format.RGBA8_UNORM, block: Texture2D.() -> Unit = {}) = Kore.graphics.createTexture2D(format, block).also {
     repeat(numLevels) { level ->
         it.setImage(this[level].image, level)
