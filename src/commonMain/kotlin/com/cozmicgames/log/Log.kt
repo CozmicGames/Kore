@@ -1,7 +1,12 @@
 package com.cozmicgames.log
 
+import com.cozmicgames.Kore
 import kotlin.reflect.KClass
 
+/**
+ * [Log] is the framework module for logging.
+ * It must be implemented by the platform specific implementation and bound to [Kore.context].
+ */
 interface Log {
     /**
      * Logs a message at the debug level.

@@ -7,6 +7,10 @@ import com.cozmicgames.files.ReadStream
 import com.cozmicgames.utils.Disposable
 import com.cozmicgames.utils.extensions.extension
 
+/**
+ * [Audio] is the framework module for reading and playing audio.
+ * It must be implemented by the platform specific implementation and bound to [Kore.context].
+ */
 interface Audio : Disposable {
     /**
      * The supported audio formats

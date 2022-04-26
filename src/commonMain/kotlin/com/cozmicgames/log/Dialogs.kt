@@ -1,5 +1,11 @@
 package com.cozmicgames.log
 
+import com.cozmicgames.Kore
+
+/**
+ * [Dialogs] is the framework module for prompting dialogs.
+ * It must be implemented by the platform specific implementation and bound to [Kore.context].
+ */
 interface Dialogs {
     /**
      * Describes different option types for dialogs.

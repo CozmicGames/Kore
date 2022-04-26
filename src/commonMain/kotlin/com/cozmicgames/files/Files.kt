@@ -6,23 +6,29 @@ import com.cozmicgames.utils.Charset
 import com.cozmicgames.utils.Charsets
 import com.cozmicgames.utils.use
 
+/**
+ * [Files] is the framework module for reading and writing files.
+ * It must be implemented by the platform specific implementation and bound to [Kore.context].
+ */
 interface Files {
     /**
      * Describes file types.
-     * ASSET: A file that is loaded as an asset. This is read only.
-     * RESOURCE: A file that is loaded as a resource. This is read and write.
+     * [ASSET]: A file that is loaded as an asset. This is read only.
+     * [RESOURCE]: A file that is loaded as a resource. This is read and write.
      */
     enum class Type {
-        ASSET, RESOURCE
+        ASSET,
+        RESOURCE
     }
 
     /**
      * Describes the endianness of a stream.
-     * LITTLE_ENDIAN: The stream is little endian.
-     * BIG_ENDIAN: The stream is big endian.
+     * [LITTLE_ENDIAN]: The stream is little endian.
+     * [BIG_ENDIAN]: The stream is big endian.
      */
     enum class Endianness {
-        LITTLE_ENDIAN, BIG_ENDIAN
+        LITTLE_ENDIAN,
+        BIG_ENDIAN
     }
 
     /**
