@@ -1,6 +1,7 @@
 plugins {
-    kotlin("multiplatform") version "1.6.0-RC2"
-    kotlin("plugin.serialization") version "1.6.0-RC2"
+    kotlin("multiplatform") version "1.6.21"
+    kotlin("plugin.serialization") version "1.6.21"
+    id("org.jetbrains.dokka") version "1.6.21"
 }
 
 group = "com.cozmicgames"
@@ -10,7 +11,6 @@ apply(plugin = "maven-publish")
 
 repositories {
     mavenCentral()
-    jcenter()
     maven("https://jitpack.io")
     maven("https://oss.sonatype.org/content/repositories/snapshots")
 }
