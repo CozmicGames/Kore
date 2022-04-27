@@ -35,6 +35,21 @@ class FixedSizeStack<T>(val capacity: Int) : Stack<T> {
     }
 
     @Suppress("UNCHECKED_CAST")
+    override fun iterator(): Iterator<T> {
+        return object : Iterator<T> {
+            var index = 0
+
+            override fun hasNext(): Boolean {
+                return index < size
+            }
+
+            override fun next(): T {
+                return values[(offset + index++) % capacity] as T
+            }
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
     override fun forEach(descending: Boolean, block: (T) -> Unit) {
         if (descending) {
             var i = size

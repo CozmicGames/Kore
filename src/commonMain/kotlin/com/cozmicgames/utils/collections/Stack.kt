@@ -1,6 +1,6 @@
 package com.cozmicgames.utils.collections
 
-interface Stack<T> {
+interface Stack<T> : Iterable<T> {
     val size: Int
     val current: T?
     val isEmpty: Boolean

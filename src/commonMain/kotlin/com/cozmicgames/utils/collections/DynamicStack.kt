@@ -25,6 +25,8 @@ class DynamicStack<T> : Stack<T> {
         return requireNotNull(values[size - 1])
     }
 
+    override fun iterator() = values.iterator()
+
     override fun forEach(descending: Boolean, block: (T) -> Unit) {
         if (descending) {
             var i = size
