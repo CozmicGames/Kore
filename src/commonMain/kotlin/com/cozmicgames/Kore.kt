@@ -25,6 +25,15 @@ object Kore {
      */
     val context = Context()
 
+    /**
+     * The string currently in clipboard, if any.
+     */
+    var clipboard: String?
+        get() = platform?.clipboard
+        set(value) {
+            platform?.clipboard = value
+        }
+
     private var platform: Platform? = null
 
     /**
