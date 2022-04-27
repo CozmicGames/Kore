@@ -24,6 +24,8 @@ class StructBuffer<T : Struct>(size: Int, private val allocator: Allocator, priv
      */
     constructor(size: Int, isStackAllocated: Boolean, supplier: () -> T) : this(size, if (isStackAllocated) ::stackAlloc else ::alloc, supplier)
 
+    private var structs = Array<Struct>(size) { supplier() }
+
     /**
      * The size of a single struct in the array, in bytes.
      */
@@ -45,8 +47,6 @@ class StructBuffer<T : Struct>(size: Int, private val allocator: Allocator, priv
      */
     var size = size
         private set
-
-    private var structs = Array<Struct>(size) { supplier() }
 
     init {
         resetStructs()

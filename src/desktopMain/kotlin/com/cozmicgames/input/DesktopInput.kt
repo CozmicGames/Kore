@@ -1,0 +1,324 @@
+package com.cozmicgames.input
+
+import com.cozmicgames.Kore
+import com.cozmicgames.graphics
+import com.cozmicgames.graphics.DesktopGraphics
+import com.cozmicgames.utils.Disposable
+import com.cozmicgames.utils.Updateable
+import net.java.games.input.Controller
+import net.java.games.input.ControllerEnvironment
+import org.lwjgl.glfw.GLFW.*
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
+import kotlin.concurrent.write
+
+class DesktopInput : Input, Updateable, Disposable {
+    private val lock = ReentrantReadWriteLock()
+
+    private val keyListeners = arrayListOf<KeyListener>()
+    private val mouseButtonListeners = arrayListOf<MouseButtonListener>()
+    private val mouseListeners = arrayListOf<MouseListener>()
+    private val touchListeners = arrayListOf<TouchListener>()
+    private val scrollListeners = arrayListOf<ScrollListener>()
+    private val charListeners = arrayListOf<CharListener>()
+    private val gamepadListeners = hashMapOf<GamepadListener, WrappedGamepadListener>()
+
+    private var keys = BooleanArray(Keys.values().size) { false }
+    private var keyStates = BooleanArray(Keys.values().size) { false }
+    private var keysJustDown = BooleanArray(Keys.values().size) { false }
+    private var keysJustUp = BooleanArray(Keys.values().size) { false }
+
+    private var buttons = BooleanArray(MouseButtons.values().size) { false }
+    private var buttonStates = BooleanArray(MouseButtons.values().size) { false }
+    private var buttonsJustDown = BooleanArray(MouseButtons.values().size) { false }
+    private var buttonsJustUp = BooleanArray(MouseButtons.values().size) { false }
+
+    private var firstUpdate = true
+    private var previousX = 0
+    private var previousY = 0
+
+    private var internalX = 0
+        private set(value) {
+            internalLastX = field
+            field = value
+        }
+
+    private var internalY = 0
+        private set(value) {
+            internalLastY = field
+            field = value
+        }
+
+    private var internalLastX = 0
+
+    private var internalLastY = 0
+
+    private var internalDeltaX = 0
+
+    private var internalDeltaY = 0
+
+    private var internalIsTouched = false
+
+    private var internalJustTouched = false
+
+    override val isTouched get() = internalIsTouched
+
+    override val justTouched get() = internalJustTouched
+
+    override val x get() = internalX
+
+    override val y get() = internalY
+
+    override val deltaX get() = internalDeltaX
+
+    override val deltaY get() = internalDeltaY
+
+    override val lastX get() = internalLastX
+
+    override val lastY get() = internalLastY
+
+    override var isCursorGrabbed: Boolean
+        get() = glfwGetInputMode((Kore.graphics as DesktopGraphics).window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED
+        set(value) {
+            glfwSetInputMode((Kore.graphics as DesktopGraphics).window, GLFW_CURSOR, if (value) GLFW_CURSOR_DISABLED else GLFW_CURSOR_NORMAL)
+        }
+
+    private val controllerEnvironment = ControllerEnvironment.getDefaultEnvironment()
+
+    override val gamepads: List<Gamepad>
+        get() = TODO("Not yet implemented")
+
+    init {
+        addKeyListener { key: Key, down: Boolean ->
+            lock.write { keys[key.ordinal] = down }
+        }
+
+        addMouseButtonListener { button, down ->
+            lock.write { buttons[button.ordinal] = down }
+        }
+    }
+
+    override fun addKeyListener(listener: KeyListener) {
+        keyListeners += listener
+    }
+
+    override fun addMouseButtonListener(listener: MouseButtonListener) {
+        mouseButtonListeners += listener
+    }
+
+    override fun addMouseListener(listener: MouseListener) {
+        mouseListeners += listener
+    }
+
+    override fun addTouchListener(listener: TouchListener) {
+        touchListeners += listener
+    }
+
+    override fun addScrollListener(listener: ScrollListener) {
+        scrollListeners += listener
+    }
+
+    override fun addCharListener(listener: CharListener) {
+        charListeners += listener
+    }
+
+    override fun addGamepadListener(listener: GamepadListener) {
+        val wrappedGamepadListener = WrappedGamepadListener(listener)
+        gamepadListeners[listener] = wrappedGamepadListener
+        controllerEnvironment.addControllerListener(wrappedGamepadListener)
+    }
+
+    override fun removeKeyListener(listener: KeyListener) {
+        keyListeners -= listener
+    }
+
+    override fun removeMouseButtonListener(listener: MouseButtonListener) {
+        mouseButtonListeners -= listener
+    }
+
+    override fun removeMouseListener(listener: MouseListener) {
+        mouseListeners -= listener
+    }
+
+    override fun removeTouchListener(listener: TouchListener) {
+        touchListeners -= listener
+    }
+
+    override fun removeScrollListener(listener: ScrollListener) {
+        scrollListeners -= listener
+    }
+
+    override fun removeCharListener(listener: CharListener) {
+        charListeners -= listener
+    }
+
+    override fun removeGamepadListener(listener: GamepadListener) {
+        val wrappedGamepadListener = gamepadListeners.remove(listener) ?: return
+        controllerEnvironment.removeControllerListener(wrappedGamepadListener)
+    }
+
+    internal fun onKeyAction(code: Int, down: Boolean) {
+        val key = getKeyFromCode(code) ?: return
+        keyListeners.forEach { it(key, down) }
+    }
+
+    internal fun onMouseButtonAction(code: Int, down: Boolean) {
+        val button = getButtonFromCode(code) ?: return
+        mouseButtonListeners.forEach { it(button, down) }
+        touchListeners.forEach { it(internalX, internalY, 0, down) }
+    }
+
+    internal fun onMouseAction(x: Int, y: Int) {
+        this.internalX = x
+        this.internalY = y
+
+        mouseListeners.forEach { it(x, y) }
+    }
+
+    internal fun onScrollAction(amount: Float) {
+        scrollListeners.forEach { it(amount) }
+    }
+
+    internal fun onCharAction(char: Char) {
+        charListeners.forEach { it(char) }
+    }
+
+    override fun update(delta: Float) = lock.write {
+        repeat(keys.size) {
+            keysJustDown[it] = keys[it] && !keyStates[it]
+            keysJustUp[it] = !keys[it] && keyStates[it]
+            keyStates[it] = keys[it]
+        }
+
+        repeat(buttons.size) {
+            buttonsJustDown[it] = buttons[it] && !buttonStates[it]
+            buttonsJustUp[it] = !buttons[it] && buttonStates[it]
+            buttonStates[it] = buttons[it]
+        }
+
+        val previousTouchState = internalIsTouched
+        internalIsTouched = buttonStates.any { it }
+        if (internalJustTouched)
+            internalJustTouched = false
+        else if (!previousTouchState && internalIsTouched)
+            internalJustTouched = true
+
+        if (!firstUpdate) {
+            internalDeltaX = internalX - previousX
+            internalDeltaY = internalY - previousY
+        }
+
+        previousX = internalX
+        previousY = internalY
+
+        firstUpdate = false
+    }
+
+    override fun isKeyDown(key: Key) = lock.read { keys[key.ordinal] }
+
+    override fun isKeyJustDown(key: Key) = lock.read { keysJustDown[key.ordinal] }
+
+    override fun isKeyJustUp(key: Key) = lock.read { keysJustUp[key.ordinal] }
+
+    override fun isButtonDown(button: MouseButton) = lock.read { buttons[button.ordinal] }
+
+    override fun isButtonJustDown(button: MouseButton) = lock.read { buttonsJustDown[button.ordinal] }
+
+    override fun isButtonJustUp(button: MouseButton) = lock.read { buttonsJustUp[button.ordinal] }
+
+    internal fun onControllerAdded(controller: Controller) {
+        TODO()
+    }
+
+    internal fun onControllerRemoved(controller: Controller) {
+        TODO()
+    }
+
+    private fun getKeyFromCode(c: Int) = when (c) {
+        GLFW_KEY_ENTER -> Keys.KEY_ENTER
+        GLFW_KEY_BACKSPACE -> Keys.KEY_BACKSPACE
+        GLFW_KEY_TAB -> Keys.KEY_TAB
+        GLFW_KEY_LEFT_SHIFT -> Keys.KEY_SHIFT
+        GLFW_KEY_RIGHT_SHIFT -> Keys.KEY_SHIFT
+        GLFW_KEY_LEFT_CONTROL -> Keys.KEY_CONTROL
+        GLFW_KEY_RIGHT_CONTROL -> Keys.KEY_CONTROL
+        GLFW_KEY_LEFT_ALT -> Keys.KEY_ALT
+        GLFW_KEY_RIGHT_ALT -> Keys.KEY_ALT
+        GLFW_KEY_PAUSE -> Keys.KEY_PAUSE
+        GLFW_KEY_CAPS_LOCK -> Keys.KEY_CAPSLOCK
+        GLFW_KEY_ESCAPE -> Keys.KEY_ESCAPE
+        GLFW_KEY_SPACE -> Keys.KEY_SPACE
+        GLFW_KEY_PAGE_UP -> Keys.KEY_PAGE_UP
+        GLFW_KEY_PAGE_DOWN -> Keys.KEY_PAGE_DOWN
+        GLFW_KEY_END -> Keys.KEY_END
+        GLFW_KEY_HOME -> Keys.KEY_HOME
+        GLFW_KEY_LEFT -> Keys.KEY_LEFT
+        GLFW_KEY_UP -> Keys.KEY_UP
+        GLFW_KEY_RIGHT -> Keys.KEY_RIGHT
+        GLFW_KEY_DOWN -> Keys.KEY_DOWN
+        GLFW_KEY_COMMA -> Keys.KEY_COMMA
+        GLFW_KEY_MINUS -> Keys.KEY_MINUS
+        GLFW_KEY_PERIOD -> Keys.KEY_PERIOD
+        GLFW_KEY_0 -> Keys.KEY_0
+        GLFW_KEY_1 -> Keys.KEY_1
+        GLFW_KEY_2 -> Keys.KEY_2
+        GLFW_KEY_3 -> Keys.KEY_3
+        GLFW_KEY_4 -> Keys.KEY_4
+        GLFW_KEY_5 -> Keys.KEY_5
+        GLFW_KEY_6 -> Keys.KEY_6
+        GLFW_KEY_7 -> Keys.KEY_7
+        GLFW_KEY_8 -> Keys.KEY_8
+        GLFW_KEY_9 -> Keys.KEY_9
+        GLFW_KEY_SEMICOLON -> Keys.KEY_SEMICOLON
+        GLFW_KEY_A -> Keys.KEY_A
+        GLFW_KEY_B -> Keys.KEY_B
+        GLFW_KEY_C -> Keys.KEY_C
+        GLFW_KEY_D -> Keys.KEY_D
+        GLFW_KEY_E -> Keys.KEY_E
+        GLFW_KEY_F -> Keys.KEY_F
+        GLFW_KEY_G -> Keys.KEY_G
+        GLFW_KEY_H -> Keys.KEY_H
+        GLFW_KEY_I -> Keys.KEY_I
+        GLFW_KEY_J -> Keys.KEY_J
+        GLFW_KEY_K -> Keys.KEY_K
+        GLFW_KEY_L -> Keys.KEY_L
+        GLFW_KEY_M -> Keys.KEY_M
+        GLFW_KEY_N -> Keys.KEY_N
+        GLFW_KEY_O -> Keys.KEY_O
+        GLFW_KEY_P -> Keys.KEY_P
+        GLFW_KEY_Q -> Keys.KEY_Q
+        GLFW_KEY_R -> Keys.KEY_R
+        GLFW_KEY_S -> Keys.KEY_S
+        GLFW_KEY_T -> Keys.KEY_T
+        GLFW_KEY_U -> Keys.KEY_U
+        GLFW_KEY_V -> Keys.KEY_V
+        GLFW_KEY_W -> Keys.KEY_W
+        GLFW_KEY_X -> Keys.KEY_X
+        GLFW_KEY_Y -> Keys.KEY_Y
+        GLFW_KEY_Z -> Keys.KEY_Z
+        GLFW_KEY_DELETE -> Keys.KEY_DELETE
+        GLFW_KEY_F1 -> Keys.KEY_F1
+        GLFW_KEY_F2 -> Keys.KEY_F2
+        GLFW_KEY_F3 -> Keys.KEY_F3
+        GLFW_KEY_F4 -> Keys.KEY_F4
+        GLFW_KEY_F5 -> Keys.KEY_F5
+        GLFW_KEY_F6 -> Keys.KEY_F6
+        GLFW_KEY_F7 -> Keys.KEY_F7
+        GLFW_KEY_F8 -> Keys.KEY_F8
+        GLFW_KEY_F9 -> Keys.KEY_F9
+        GLFW_KEY_F10 -> Keys.KEY_F10
+        GLFW_KEY_F11 -> Keys.KEY_F11
+        GLFW_KEY_F12 -> Keys.KEY_F12
+        else -> null
+    }
+
+    private fun getButtonFromCode(c: Int) = when (c) {
+        GLFW_MOUSE_BUTTON_LEFT -> MouseButtons.LEFT
+        GLFW_MOUSE_BUTTON_MIDDLE -> MouseButtons.MIDDLE
+        GLFW_MOUSE_BUTTON_RIGHT -> MouseButtons.RIGHT
+        else -> null
+    }
+
+    override fun dispose() {
+    }
+}

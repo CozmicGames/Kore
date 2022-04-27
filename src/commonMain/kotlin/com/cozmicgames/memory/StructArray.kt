@@ -33,21 +33,6 @@ class StructArray<T : Struct>(val size: Int, supplier: () -> T) : Iterable<T>, D
      */
     constructor(size: Int, isStackAllocated: Boolean, supplier: () -> T) : this(size, if (isStackAllocated) ::stackAlloc else ::alloc, supplier)
 
-    /**
-     * The size of a single struct in the array, in bytes.
-     */
-    val structSize get() = structs.first().size
-
-    /**
-     * The total size of all structs in the array, in bytes.
-     */
-    val totalSize get() = size * structSize
-
-    /**
-     * The memory used by the structs in the array.
-     */
-    val memory get() = requireNotNull(internalMemory)
-
     private var ownsMemory = false
     private val structs = Array<Struct>(size) { supplier() }
     private val memorySupplier get() = requireNotNull(internalMemorySupplier)
@@ -69,6 +54,21 @@ class StructArray<T : Struct>(val size: Int, supplier: () -> T) : Iterable<T>, D
                 field = memorySupplier()
             return field
         }
+
+    /**
+     * The size of a single struct in the array, in bytes.
+     */
+    val structSize get() = structs.first().size
+
+    /**
+     * The total size of all structs in the array, in bytes.
+     */
+    val totalSize get() = size * structSize
+
+    /**
+     * The memory used by the structs in the array.
+     */
+    val memory get() = requireNotNull(internalMemory)
 
     init {
         require(size > 0)
