@@ -49,7 +49,7 @@ class DesktopGraphics : Graphics, Disposable {
 
     override val statistics get() = DesktopStatistics as Statistics
 
-    override val defaultFont: Font = DesktopFont(java.awt.Font("Arial", java.awt.Font.PLAIN, 14), 14)
+    override val defaultFont: Font = DesktopFont(java.awt.Font("Arial", java.awt.Font.PLAIN, 14))
 
     override val uniformBufferLayout get() = impl.uniformBufferLayout
 
@@ -205,7 +205,7 @@ class DesktopGraphics : Graphics, Disposable {
             return null
         }
 
-        return DesktopFont(awtFont, awtFont.size)
+        return DesktopFont(awtFont)
     }
 
     override fun createPipeline(type: Pipeline.Type, block: Pipeline.() -> Unit) = impl.createPipeline(type, block)

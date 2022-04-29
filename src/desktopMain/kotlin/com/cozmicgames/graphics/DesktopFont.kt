@@ -5,14 +5,17 @@ import java.awt.Graphics2D
 import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 
-class DesktopFont(private val awtFont: java.awt.Font, override val size: Int) : Font {
-    private val charImages = hashMapOf<Char, Image>()
+class DesktopFont(private val awtFont: java.awt.Font) : Font {
+    private class DerivedFont(val awtFont: java.awt.Font) {
+        private val images = hashMapOf<Char, Image>()
 
-    override fun getCharImage(char: Char): Image? {
-        if (char in charImages)
-            return charImages[char]
+        fun getImage(char: Char): Image? {
+            if (char in images)
+                return images[char]
 
-        if (awtFont.canDisplay(char)) {
+            if (!awtFont.canDisplay(char))
+                return null
+
             val tempImage = BufferedImage(1, 1, BufferedImage.TYPE_INT_ARGB)
             val tempGraphics = tempImage.graphics as Graphics2D
             tempGraphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON)
@@ -43,10 +46,15 @@ class DesktopFont(private val awtFont: java.awt.Font, override val size: Int) : 
                 }
             }
 
-            charImages[char] = image
             return image
         }
-
-        return null
     }
+
+    private val derivedFonts = hashMapOf<Float, DerivedFont>()
+
+    private fun getDerivedFont(size: Float) = derivedFonts.getOrPut(size) {
+        DerivedFont(awtFont.deriveFont(size))
+    }
+
+    override fun getCharImage(char: Char, size: Float) = getDerivedFont(size).getImage(char)
 }
