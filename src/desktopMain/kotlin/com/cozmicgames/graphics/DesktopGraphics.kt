@@ -311,12 +311,8 @@ class DesktopGraphics : Graphics, Disposable {
             i.onMouseButtonAction(button, action == GLFW_PRESS)
         }
 
-        glfwSetCursorPosCallback(window) { _, x, y ->
-            i.onMouseAction(x.toInt(), internalHeight - y.toInt())
-        }
-
-        glfwSetScrollCallback(window) { _, _, y ->
-            i.onScrollAction(y.toFloat())
+        glfwSetScrollCallback(window) { _, x, y ->
+            i.onScrollAction(x.toFloat(), y.toFloat())
         }
 
         glfwSetDropCallback(window) { _, count, names ->

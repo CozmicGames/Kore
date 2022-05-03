@@ -8,6 +8,7 @@ import com.cozmicgames.utils.Updateable
 import net.java.games.input.Controller
 import net.java.games.input.ControllerEnvironment
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.system.MemoryStack.stackPush
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -17,7 +18,6 @@ class DesktopInput : Input, Updateable, Disposable {
 
     private val keyListeners = arrayListOf<KeyListener>()
     private val mouseButtonListeners = arrayListOf<MouseButtonListener>()
-    private val mouseListeners = arrayListOf<MouseListener>()
     private val touchListeners = arrayListOf<TouchListener>()
     private val scrollListeners = arrayListOf<ScrollListener>()
     private val charListeners = arrayListOf<CharListener>()
@@ -106,10 +106,6 @@ class DesktopInput : Input, Updateable, Disposable {
         mouseButtonListeners += listener
     }
 
-    override fun addMouseListener(listener: MouseListener) {
-        mouseListeners += listener
-    }
-
     override fun addTouchListener(listener: TouchListener) {
         touchListeners += listener
     }
@@ -134,10 +130,6 @@ class DesktopInput : Input, Updateable, Disposable {
 
     override fun removeMouseButtonListener(listener: MouseButtonListener) {
         mouseButtonListeners -= listener
-    }
-
-    override fun removeMouseListener(listener: MouseListener) {
-        mouseListeners -= listener
     }
 
     override fun removeTouchListener(listener: TouchListener) {
@@ -168,15 +160,8 @@ class DesktopInput : Input, Updateable, Disposable {
         touchListeners.forEach { it(internalX, internalY, 0, down) }
     }
 
-    internal fun onMouseAction(x: Int, y: Int) {
-        this.internalX = x
-        this.internalY = y
-
-        mouseListeners.forEach { it(x, y) }
-    }
-
-    internal fun onScrollAction(amount: Float) {
-        scrollListeners.forEach { it(amount) }
+    internal fun onScrollAction(x: Float, y: Float) {
+        scrollListeners.forEach { it(x, y) }
     }
 
     internal fun onCharAction(char: Char) {
@@ -184,6 +169,14 @@ class DesktopInput : Input, Updateable, Disposable {
     }
 
     override fun update(delta: Float) = lock.write {
+        stackPush().use {
+            val pX = it.callocDouble(1)
+            val pY = it.callocDouble(1)
+            glfwGetCursorPos((Kore.graphics as DesktopGraphics).window, pX, pY)
+            internalX = pX.get(0).toInt()
+            internalY = Kore.graphics.height - pY.get(0).toInt()
+        }
+
         repeat(keys.size) {
             keysJustDown[it] = keys[it] && !keyStates[it]
             keysJustUp[it] = !keys[it] && keyStates[it]

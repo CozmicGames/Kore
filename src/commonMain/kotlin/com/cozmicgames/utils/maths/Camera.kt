@@ -1,16 +1,16 @@
 package com.cozmicgames.utils.maths
 
 abstract class Camera {
-    val projection = Matrix4x4()
-    val view = Matrix4x4()
-    val projectionView = Matrix4x4()
-    val inverseProjectionView = Matrix4x4()
+    open val projection = Matrix4x4()
+    open val view = Matrix4x4()
+    open val projectionView = Matrix4x4()
+    open val inverseProjectionView = Matrix4x4()
 
-    val position = Vector3()
-    val direction = Vector3(0.0f, 0.0f, -1.0f)
-    val up = Vector3(0.0f, 1.0f, 0.0f)
+    open val position = Vector3()
+    open val direction = Vector3(0.0f, 0.0f, -1.0f)
+    open val up = Vector3(0.0f, 1.0f, 0.0f)
 
-    val frustum = Frustum()
+    open val frustum = Frustum()
 
     abstract fun update()
 }

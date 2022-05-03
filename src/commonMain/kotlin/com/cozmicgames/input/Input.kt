@@ -4,18 +4,16 @@ import com.cozmicgames.utils.Disposable
 
 typealias KeyListener = (Key, Boolean) -> Unit
 typealias MouseButtonListener = (MouseButton, Boolean) -> Unit
-typealias MouseListener = (Int, Int) -> Unit
 typealias TouchListener = (Int, Int, Int, Boolean) -> Unit
-typealias ScrollListener = (Float) -> Unit
+typealias ScrollListener = (Float, Float) -> Unit
 typealias CharListener = (Char) -> Unit
 typealias GamepadListener = (Gamepad, Boolean) -> Unit
 
 interface InputListener {
     fun onKey(key: Key, down: Boolean) {}
     fun onMouseButton(button: MouseButton, down: Boolean) {}
-    fun onMouseMove(x: Int, y: Int) {}
     fun onTouch(x: Int, y: Int, pointer: Int, down: Boolean) {}
-    fun onScroll(amount: Float) {}
+    fun onScroll(x: Float, y: Float) {}
     fun onChar(char: Char) {}
     fun onGamepad(gamepad: Gamepad, isConnected: Boolean) {}
 }
@@ -43,7 +41,6 @@ interface Input : Disposable {
 
     fun addKeyListener(listener: KeyListener)
     fun addMouseButtonListener(listener: MouseButtonListener)
-    fun addMouseListener(listener: MouseListener)
     fun addTouchListener(listener: TouchListener)
     fun addScrollListener(listener: ScrollListener)
     fun addCharListener(listener: CharListener)
@@ -51,7 +48,6 @@ interface Input : Disposable {
 
     fun removeKeyListener(listener: KeyListener)
     fun removeMouseButtonListener(listener: MouseButtonListener)
-    fun removeMouseListener(listener: MouseListener)
     fun removeTouchListener(listener: TouchListener)
     fun removeScrollListener(listener: ScrollListener)
     fun removeCharListener(listener: CharListener)
@@ -61,7 +57,6 @@ interface Input : Disposable {
 fun Input.addListener(listener: InputListener) {
     addKeyListener(listener::onKey)
     addMouseButtonListener(listener::onMouseButton)
-    addMouseListener(listener::onMouseMove)
     addTouchListener(listener::onTouch)
     addScrollListener(listener::onScroll)
     addCharListener(listener::onChar)
@@ -71,7 +66,6 @@ fun Input.addListener(listener: InputListener) {
 fun Input.removeListener(listener: InputListener) {
     removeKeyListener(listener::onKey)
     removeMouseButtonListener(listener::onMouseButton)
-    removeMouseListener(listener::onMouseMove)
     removeTouchListener(listener::onTouch)
     removeScrollListener(listener::onScroll)
     removeCharListener(listener::onChar)
