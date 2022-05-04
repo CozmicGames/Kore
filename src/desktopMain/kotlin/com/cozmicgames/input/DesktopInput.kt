@@ -59,11 +59,15 @@ class DesktopInput : Input, Updateable, Disposable {
 
     private var internalIsTouched = false
 
-    private var internalJustTouched = false
+    private var internalJustTouchedDown = false
+
+    private var internalJustTouchedUp = false
 
     override val isTouched get() = internalIsTouched
 
-    override val justTouched get() = internalJustTouched
+    override val justTouchedDown get() = internalJustTouchedDown
+
+    override val justTouchedUp get() = internalJustTouchedUp
 
     override val x get() = internalX
 
@@ -191,10 +195,12 @@ class DesktopInput : Input, Updateable, Disposable {
 
         val previousTouchState = internalIsTouched
         internalIsTouched = buttonStates.any { it }
-        if (internalJustTouched)
-            internalJustTouched = false
+        if (internalJustTouchedDown)
+            internalJustTouchedDown = false
         else if (!previousTouchState && internalIsTouched)
-            internalJustTouched = true
+            internalJustTouchedDown = true
+
+        internalJustTouchedUp = buttonsJustUp.any { it }
 
         if (!firstUpdate) {
             internalDeltaX = internalX - previousX

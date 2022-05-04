@@ -20,7 +20,8 @@ interface InputListener {
 
 interface Input : Disposable {
     val isTouched: Boolean
-    val justTouched: Boolean
+    val justTouchedDown: Boolean
+    val justTouchedUp: Boolean
     val x: Int
     val y: Int
     val lastX: Int
