@@ -2,6 +2,7 @@ package com.cozmicgames.audio
 
 import com.cozmicgames.Kore
 import com.cozmicgames.files
+import com.cozmicgames.files.FileHandle
 import com.cozmicgames.files.Files
 import com.cozmicgames.files.ReadStream
 import com.cozmicgames.utils.Disposable
@@ -54,3 +55,12 @@ fun Audio.loadSound(file: String, type: Files.Type) = readSound(
         Files.Type.RESOURCE -> Kore.files.readAsset(file)
     }, file.extension
 )
+
+/**
+ * Loads the audio from the given [fileHandle].
+ *
+ * @param fileHandle The file handle to load the audio from
+ *
+ * @return The loaded audio or null if the audio could not be loaded.
+ */
+fun Audio.loadSound(fileHandle: FileHandle) = loadSound(fileHandle.path, fileHandle.type)

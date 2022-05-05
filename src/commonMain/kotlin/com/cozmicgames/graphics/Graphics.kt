@@ -2,6 +2,7 @@ package com.cozmicgames.graphics
 
 import com.cozmicgames.Kore
 import com.cozmicgames.files
+import com.cozmicgames.files.FileHandle
 import com.cozmicgames.files.Files
 import com.cozmicgames.files.ReadStream
 import com.cozmicgames.files.WriteStream
@@ -531,3 +532,34 @@ fun Graphics.loadFont(file: String, type: Files.Type) = when (type) {
 }.use {
     readFont(it, file.extension)
 }
+
+/**
+ * Loads an image from the given [fileHandle].
+ * @see [Graphics.readImage]
+ *
+ * @param fileHandle The file handle to load the image from.
+ *
+ * @return The loaded image.
+ */
+fun Graphics.loadImage(fileHandle: FileHandle) = loadImage(fileHandle.path, fileHandle.type)
+
+/**
+ * Writes the given [image] to the given [fileHandle].
+ * @see [Graphics.writeImage]
+ *
+ * @param fileHandle The file handle to write the image to.
+ * @param image The image to write.
+ */
+fun Graphics.saveImage(fileHandle: FileHandle, image: Image) = saveImage(fileHandle.path, image)
+
+/**
+ * Loads a font from the given [fileHandle].
+ * @see [Graphics.readFont]
+ *
+ * @param fileHandle The file handle to load the font from.
+ * @param type The type of the font.
+ *
+ * @return The loaded font.
+ */
+fun Graphics.loadFont(fileHandle: FileHandle) = loadFont(fileHandle.path, fileHandle.type)
+
