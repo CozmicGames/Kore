@@ -501,7 +501,7 @@ fun Graphics.setVertexBuffer(buffer: GraphicsBuffer?, layout: VertexLayout?) = s
  */
 fun Graphics.loadImage(file: String, type: Files.Type) = when (type) {
     Files.Type.ASSET -> Kore.files.readAsset(file)
-    Files.Type.RESOURCE -> Kore.files.readAsset(file)
+    Files.Type.RESOURCE -> Kore.files.readResource(file)
 }.use {
     readImage(it, file.extension)
 }
@@ -528,7 +528,7 @@ fun Graphics.saveImage(file: String, image: Image) = Kore.files.writeResource(fi
  */
 fun Graphics.loadFont(file: String, type: Files.Type) = when (type) {
     Files.Type.ASSET -> Kore.files.readAsset(file)
-    Files.Type.RESOURCE -> Kore.files.readAsset(file)
+    Files.Type.RESOURCE -> Kore.files.readResource(file)
 }.use {
     readFont(it, file.extension)
 }

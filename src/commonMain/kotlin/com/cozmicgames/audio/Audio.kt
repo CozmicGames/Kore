@@ -52,7 +52,7 @@ interface Audio : Disposable {
 fun Audio.loadSound(file: String, type: Files.Type) = readSound(
     when (type) {
         Files.Type.ASSET -> Kore.files.readAsset(file)
-        Files.Type.RESOURCE -> Kore.files.readAsset(file)
+        Files.Type.RESOURCE -> Kore.files.readResource(file)
     }, file.extension
 )
 

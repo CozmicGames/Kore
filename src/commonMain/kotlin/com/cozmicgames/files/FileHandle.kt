@@ -57,6 +57,20 @@ class FileHandle(val path: String, val type: Files.Type) {
 
         return Kore.files.writeResource(path, append)
     }
+
+    override fun toString(): String {
+        return "FileHandle(path='$path', type=$type)"
+    }
+
+    override fun hashCode(): Int {
+        return path.hashCode() + type.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is FileHandle) return false
+
+        return other.path == path && other.type == type
+    }
 }
 
 fun Files.resource(path: String): FileHandle {
