@@ -1,10 +1,7 @@
 package com.cozmicgames.graphics
 
 import com.cozmicgames.*
-import com.cozmicgames.files.DesktopReadStream
-import com.cozmicgames.files.Files
-import com.cozmicgames.files.ReadStream
-import com.cozmicgames.files.WriteStream
+import com.cozmicgames.files.*
 import com.cozmicgames.graphics.gpu.*
 import com.cozmicgames.graphics.opengl.gl32.GL32GraphicsImpl
 import com.cozmicgames.graphics.opengl.gl43.GL43GraphicsImpl
@@ -280,16 +277,18 @@ class DesktopGraphics : Graphics, Disposable {
             val images = GLFWImage.calloc(iconPaths.size)
             val buffers = arrayListOf<ByteBuffer>()
             repeat(iconPaths.size) {
-                loadImage(iconPaths[it], Files.Type.ASSET)?.let { image ->
-                    images[it].width(image.width)
-                    images[it].height(image.height)
-                    val data = image.pixels.toByteArray()
-                    val buffer = memAlloc(data.size)
-                    buffer.put(data)
-                    buffer.flip()
-                    images[it].pixels(buffer)
-                    buffers += buffer
-                }
+                val file = DesktopAssetFileHandle(iconPaths[it])
+                if (file.exists)
+                    loadImage(file)?.let { image ->
+                        images[it].width(image.width)
+                        images[it].height(image.height)
+                        val data = image.pixels.toByteArray()
+                        val buffer = memAlloc(data.size)
+                        buffer.put(data)
+                        buffer.flip()
+                        images[it].pixels(buffer)
+                        buffers += buffer
+                    }
             }
 
             glfwSetWindowIcon(window, images)

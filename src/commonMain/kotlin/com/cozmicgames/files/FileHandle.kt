@@ -2,89 +2,148 @@ package com.cozmicgames.files
 
 import com.cozmicgames.Kore
 import com.cozmicgames.files
-import com.cozmicgames.log
 import com.cozmicgames.utils.Charset
 import com.cozmicgames.utils.Charsets
+import com.cozmicgames.utils.extensions.directory
+import com.cozmicgames.utils.extensions.extension
+import com.cozmicgames.utils.extensions.nameWithExtension
+import com.cozmicgames.utils.extensions.nameWithoutExtension
 import com.cozmicgames.utils.use
 
-class FileHandle(val path: String, val type: Files.Type) {
+interface FileHandle {
     /**
-     * True if the file can be written to.
+     * The type of this file.
+     * @see Files.Type
      */
-    val isWritable get() = type == Files.Type.RESOURCE
+    val type: Files.Type
 
     /**
-     * Check if the given file exists.
+     * The full path of this file.
      */
-    val exists get() = Kore.files.exists(path, type)
-
-    fun list(block: (String) -> Unit) = Kore.files.list(path, type, block)
+    val fullPath: String
 
     /**
-     * Deletes the file.
-     * Only works if [type] is [Files.Type.RESOURCE].
+     * Whether this file is writable.
      */
-    fun delete() {
-        if (type == Files.Type.ASSET) {
-            Kore.log.error(this::class, "Cannot delete asset file $path")
-            return
-        }
-
-        Kore.files.deleteResource(path)
-    }
+    val isWritable: Boolean
 
     /**
-     * Reads the file.
+     * Whether this file exists.
+     */
+    val exists: Boolean
+
+    /**
+     * The size of this file.
+     */
+    val size: Long
+
+    /**
+     * The last modified time of this file, in milliseconds.
+     */
+    val lastModified: Long
+
+    /**
+     * Lists the contents of this file handle, if it is a directory.
+     */
+    fun list(block: (String) -> Unit)
+
+    /**
+     * Delete this file. If this is a directory, all sub-files and sub-directories will be deleted as well.
+     */
+    fun delete()
+
+    /**
+     * Creates a [ReadStream] for this file.
+     */
+    fun read(): ReadStream
+
+    /**
+     * Creates a [WriteStream] for this file. This requires [isWritable] to be true.
      *
-     * @return A stream to read the files' contents from.
+     * @param append Whether to append to the file if it already exists. If false, the file will be overwritten.
      */
-    fun read() = when (type) {
-        Files.Type.ASSET -> Kore.files.readAsset(path)
-        Files.Type.RESOURCE -> Kore.files.readResource(path)
-    }
+    fun write(append: Boolean): WriteStream
 
     /**
-     * Writes to the file.
-     * Only works if [type] is [Files.Type.RESOURCE].
+     * Creates a child file handle for this file.
      *
-     * @return A stream to write the files' contents to.
+     * @param path The path to the child file.
      */
-    fun write(append: Boolean): WriteStream? {
-        if (type == Files.Type.ASSET) {
-            Kore.log.error(this::class, "Cannot write to asset file $path")
-            return null
-        }
+    fun child(path: String): FileHandle
 
-        return Kore.files.writeResource(path, append)
-    }
+    /**
+     * Creates a sibling file handle for this file.
+     *
+     * @param path The path to the sibling file.
+     */
+    fun sibling(path: String): FileHandle
 
-    override fun toString(): String {
-        return "FileHandle(path='$path', type=$type)"
-    }
+    /**
+     * Creates a parent file handle for this file.
+     */
+    fun parent(): FileHandle
 
-    override fun hashCode(): Int {
-        return path.hashCode() + type.hashCode()
-    }
+    /**
+     * Copies this file to the specified file handle.
+     *
+     * @param file The file handle to copy to.
+     */
+    fun copyTo(file: FileHandle)
 
-    override fun equals(other: Any?): Boolean {
-        if (other !is FileHandle) return false
+    /**
+     * Moves this file to the specified file handle.
+     *
+     * @param file The file handle to move to.
+     */
+    fun moveTo(file: FileHandle)
 
-        return other.path == path && other.type == type
-    }
+    override fun toString(): String
+
+    override fun hashCode(): Int
+
+    override fun equals(other: Any?): Boolean
 }
 
-fun Files.resource(path: String): FileHandle {
-    return FileHandle(path, Files.Type.RESOURCE)
-}
+/**
+ * Whether this file handle is a directory.
+ */
+val FileHandle.isDirectory get() = fullPath.endsWith(Kore.files.separator)
 
-fun Files.asset(path: String): FileHandle {
-    return FileHandle(path, Files.Type.ASSET)
-}
+/**
+ * Whether this file handle is a file.
+ */
+val FileHandle.isFile get() = !isDirectory
 
+/**
+ * The extension of this file handle.
+ */
+val FileHandle.extension get() = fullPath.extension
+
+/**
+ * The name of this file handle, with extension.
+ */
+val FileHandle.nameWithExtension get() = fullPath.nameWithExtension
+
+/**
+ * The name of this file handle, without extension.
+ */
+val FileHandle.nameWithoutExtension get() = fullPath.nameWithoutExtension
+
+/**
+ * The directory of this file handle.
+ */
+val FileHandle.directory get() = fullPath.directory
+
+/**
+ * Reads the contents of this file handle as a string.
+ */
 fun FileHandle.readToString(charset: Charset = Charsets.UTF8) = read().use {
     it.readString(charset)
 }
 
+/**
+ * Reads the contents of this file handle as a [ByteArray].
+ */
 fun FileHandle.readToBytes() = read().use {
     it.readAllBytes()
 }

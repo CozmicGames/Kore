@@ -1,12 +1,11 @@
 package com.cozmicgames.audio
 
 import com.cozmicgames.Kore
-import com.cozmicgames.files
-import com.cozmicgames.files.FileHandle
-import com.cozmicgames.files.Files
 import com.cozmicgames.files.ReadStream
+import com.cozmicgames.files.FileHandle
+import com.cozmicgames.files.extension
 import com.cozmicgames.utils.Disposable
-import com.cozmicgames.utils.extensions.extension
+import com.cozmicgames.utils.use
 
 /**
  * [Audio] is the framework module for reading and playing audio.
@@ -42,25 +41,12 @@ interface Audio : Disposable {
 }
 
 /**
- * Loads the audio from the given [file] in the given [type].
+ * Loads the audio from the given [file].
  *
- * @param file The file to load the audio from
- * @param type The type of the file
- *
- * @return The loaded audio or null if the audio could not be loaded.
- */
-fun Audio.loadSound(file: String, type: Files.Type) = readSound(
-    when (type) {
-        Files.Type.ASSET -> Kore.files.readAsset(file)
-        Files.Type.RESOURCE -> Kore.files.readResource(file)
-    }, file.extension
-)
-
-/**
- * Loads the audio from the given [fileHandle].
- *
- * @param fileHandle The file handle to load the audio from
+ * @param file The file handle to load the audio from
  *
  * @return The loaded audio or null if the audio could not be loaded.
  */
-fun Audio.loadSound(fileHandle: FileHandle) = loadSound(fileHandle.path, fileHandle.type)
+fun Audio.loadSound(file: FileHandle) = file.read().use {
+    readSound(it, file.extension)
+}

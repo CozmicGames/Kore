@@ -1,19 +1,19 @@
 package com.cozmicgames.files
 
 import com.cozmicgames.Kore
-import com.cozmicgames.application
 import com.cozmicgames.log
-import java.io.*
+import java.io.File
 import java.nio.ByteOrder
-import java.util.zip.ZipInputStream
+import java.util.zip.ZipFile
 
 
-class DesktopFiles: Files {
+class DesktopFiles : Files {
     companion object {
-        fun getAssetURL(file: String) = Kore::class.java.getResource("/$file")
+        private val externalPath = System.getProperty("user.home") + File.separator
+        private val localPath = File("").absolutePath + File.separator
     }
 
-    override val separator get() = File.pathSeparator
+    override val separator get() = File.separator
 
     override val nativeEndianness = when (ByteOrder.nativeOrder()) {
         ByteOrder.LITTLE_ENDIAN -> Files.Endianness.LITTLE_ENDIAN
@@ -21,76 +21,35 @@ class DesktopFiles: Files {
         else -> throw Exception()
     }
 
-    override fun list(file: String, type: Files.Type, block: (String) -> Unit) {
-        when (type) {
-            Files.Type.ASSET -> {
-                fun listInDirectory(zip: ZipInputStream) {
-                    while (true) {
-                        val entry = zip.nextEntry ?: break
-
-                        if (!entry.isDirectory && entry.name.startsWith(file))
-                            block(entry.name)
-                    }
-                }
-
-                val jar = Kore.application.javaClass.protectionDomain.codeSource?.location ?: return
-                val zip = ZipInputStream(jar.openStream())
-                listInDirectory(zip)
-                zip.close()
-            }
-            Files.Type.RESOURCE -> {
-                fun listInDirectory(file: String) {
-                    val f = File(file)
-                    if (!f.exists() || !f.isDirectory)
-                        return
-
-                    f.list()?.forEach {
-                        val ff = File(it)
-                        if (ff.isDirectory)
-                            listInDirectory(it)
-                        else
-                            block(ff.absolutePath)
-                    }
-                }
-
-                listInDirectory(file)
-            }
-        }
+    override fun asset(path: String): FileHandle {
+        return DesktopAssetFileHandle(path)
     }
 
-    override fun exists(file: String, type: Files.Type): Boolean {
-        return when (type) {
-            Files.Type.ASSET -> getAssetURL(file) != null
-            Files.Type.RESOURCE -> File(file).exists()
-        }
+    override fun local(path: String): FileHandle {
+        return DesktopFileHandle("$localPath$separator$path", Files.Type.LOCAL)
     }
 
-    override fun deleteResource(file: String) {
-        val f = File(file)
-        if (f.exists())
-            f.delete()
+    override fun external(path: String): FileHandle {
+        return DesktopFileHandle("$externalPath$separator$path", Files.Type.EXTERNAL)
     }
 
-    override fun readAsset(file: String): ReadStream {
-        val url = getAssetURL(file)
-        if (url == null)
-            Kore.log.fail(this::class, "Asset file not found: $file")
-        return DesktopReadStream(BufferedInputStream(url.openStream()))
+    override fun absolute(path: String): FileHandle {
+        return DesktopFileHandle(path, Files.Type.EXTERNAL)
     }
 
-    override fun readResource(file: String): ReadStream {
-        val f = File(file)
-        if (!f.exists())
-            Kore.log.fail(this::class, "Resource file not found: $file")
-        return DesktopReadStream(BufferedInputStream(FileInputStream(f)))
+    override fun openZip(file: FileHandle): ZipArchive? {
+        if (file is DesktopFileHandle)
+            return DesktopZipArchive(ZipFile(file.file))
+
+        //TODO: Open nested zip files
+        return null
     }
 
-    override fun writeResource(file: String, append: Boolean): WriteStream {
-        val f = File(file)
-        if (!f.exists()) {
-            f.parentFile?.mkdirs()
-            f.createNewFile()
-        }
-        return DesktopWriteStream(BufferedOutputStream(FileOutputStream(f, append)))
+    override fun buildZip(file: FileHandle): ZipBuilder {
+        if (file is DesktopFileHandle)
+            return DesktopZipBuilder(file.file)
+
+        Kore.log.fail(this::class, "Cannot write to file: $file")
+        throw UnsupportedOperationException()
     }
 }

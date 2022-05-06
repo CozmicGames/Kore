@@ -2,6 +2,7 @@ package com.cozmicgames.graphics.gpu.pipeline
 
 import com.cozmicgames.Kore
 import com.cozmicgames.files
+import com.cozmicgames.files.FileHandle
 import com.cozmicgames.files.Files
 import com.cozmicgames.files.readToString
 import com.cozmicgames.graphics
@@ -13,8 +14,8 @@ import com.cozmicgames.utils.extensions.removeBlankLines
 import com.cozmicgames.utils.extensions.removeComments
 
 class PipelineDefinition() {
-    constructor(file: String, type: Files.Type) : this() {
-        load(file, type)
+    constructor(file: FileHandle) : this() {
+        load(file)
     }
 
     constructor(text: String) : this() {
@@ -37,8 +38,8 @@ class PipelineDefinition() {
     @Suppress("UNCHECKED_CAST")
     fun <T : DefinitionSection> getSection(type: DefinitionSection.Type) = sections[type] as? T
 
-    fun load(file: String, type: Files.Type, charset: Charset = Charsets.UTF8) {
-        val text = Kore.files.readToString(file, type, charset)
+    fun load(file: FileHandle, charset: Charset = Charsets.UTF8) {
+        val text = file.readToString(charset)
         parse(text)
     }
 

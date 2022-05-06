@@ -1,18 +1,16 @@
 package com.cozmicgames.graphics
 
 import com.cozmicgames.Kore
-import com.cozmicgames.files
-import com.cozmicgames.files.FileHandle
-import com.cozmicgames.files.Files
 import com.cozmicgames.files.ReadStream
 import com.cozmicgames.files.WriteStream
+import com.cozmicgames.files.FileHandle
+import com.cozmicgames.files.extension
 import com.cozmicgames.graphics
 import com.cozmicgames.graphics.gpu.*
 import com.cozmicgames.graphics.gpu.pipeline.PipelineDefinition
 import com.cozmicgames.memory.Memory
 import com.cozmicgames.utils.Color
 import com.cozmicgames.utils.extensions.emptyIntArray
-import com.cozmicgames.utils.extensions.extension
 import com.cozmicgames.utils.maths.Rectangle
 import com.cozmicgames.utils.use
 
@@ -491,75 +489,37 @@ val Graphics.defaultTexture3D get() = _defaultTexture3D
 fun Graphics.setVertexBuffer(buffer: GraphicsBuffer?, layout: VertexLayout?) = setVertexBuffer(buffer, layout?.indices ?: emptyIntArray())
 
 /**
- * Loads an image from the given [file] with the specified [type].
+ * Loads an image from the given [fileHandle].
  * @see [Graphics.readImage]
  *
- * @param file The file to load the image from.
- * @param type The type of the image.
+ * @param file The file handle to load the image from.
  *
  * @return The loaded image.
  */
-fun Graphics.loadImage(file: String, type: Files.Type) = when (type) {
-    Files.Type.ASSET -> Kore.files.readAsset(file)
-    Files.Type.RESOURCE -> Kore.files.readResource(file)
-}.use {
+fun Graphics.loadImage(file: FileHandle) = file.read().use {
     readImage(it, file.extension)
 }
 
 /**
- * Writes the given [image] to the given [file] as a resource.
+ * Writes the given [image] to the given [file].
  * @see [Graphics.writeImage]
  *
- * @param file The file to write the image to.
+ * @param file The file handle to write the image to.
  * @param image The image to write.
  */
-fun Graphics.saveImage(file: String, image: Image) = Kore.files.writeResource(file, false).use {
+fun Graphics.saveImage(file: FileHandle, image: Image) = file.write(false).use {
     writeImage(it, image, file.extension)
 }
 
 /**
- * Loads a font from the given [file] with the specified [type].
+ * Loads a font from the given [file].
  * @see [Graphics.readFont]
  *
- * @param file The file to load the font from.
- * @param type The type of the font.
+ * @param file The file handle to load the font from.
  *
  * @return The loaded font.
  */
-fun Graphics.loadFont(file: String, type: Files.Type) = when (type) {
-    Files.Type.ASSET -> Kore.files.readAsset(file)
-    Files.Type.RESOURCE -> Kore.files.readResource(file)
-}.use {
+fun Graphics.loadFont(file: FileHandle) = file.read().use {
     readFont(it, file.extension)
 }
-
-/**
- * Loads an image from the given [fileHandle].
- * @see [Graphics.readImage]
- *
- * @param fileHandle The file handle to load the image from.
- *
- * @return The loaded image.
- */
-fun Graphics.loadImage(fileHandle: FileHandle) = loadImage(fileHandle.path, fileHandle.type)
-
-/**
- * Writes the given [image] to the given [fileHandle].
- * @see [Graphics.writeImage]
- *
- * @param fileHandle The file handle to write the image to.
- * @param image The image to write.
- */
-fun Graphics.saveImage(fileHandle: FileHandle, image: Image) = saveImage(fileHandle.path, image)
-
-/**
- * Loads a font from the given [fileHandle].
- * @see [Graphics.readFont]
- *
- * @param fileHandle The file handle to load the font from.
- * @param type The type of the font.
- *
- * @return The loaded font.
- */
-fun Graphics.loadFont(fileHandle: FileHandle) = loadFont(fileHandle.path, fileHandle.type)
 

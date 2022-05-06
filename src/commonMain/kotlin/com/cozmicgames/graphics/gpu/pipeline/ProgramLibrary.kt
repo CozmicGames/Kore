@@ -2,6 +2,7 @@ package com.cozmicgames.graphics.gpu.pipeline
 
 import com.cozmicgames.Kore
 import com.cozmicgames.files
+import com.cozmicgames.files.FileHandle
 import com.cozmicgames.files.Files
 import com.cozmicgames.files.readToString
 import com.cozmicgames.utils.Charset
@@ -198,8 +199,8 @@ object ProgramLibrary {
         includes[name] = source
     }
 
-    fun addInclude(file: String, type: Files.Type, charset: Charset = Charsets.UTF8) {
-        addInclude(file) { Kore.files.readToString(file, type, charset) }
+    fun addInclude(file: FileHandle, charset: Charset = Charsets.UTF8) {
+        addInclude(file.fullPath) { file.readToString(charset) }
     }
 
     fun getInclude(name: String): String {

@@ -1,10 +1,6 @@
 package com.cozmicgames.files
 
 import com.cozmicgames.Kore
-import com.cozmicgames.files
-import com.cozmicgames.utils.Charset
-import com.cozmicgames.utils.Charsets
-import com.cozmicgames.utils.use
 
 /**
  * [Files] is the framework module for reading and writing files.
@@ -12,13 +8,19 @@ import com.cozmicgames.utils.use
  */
 interface Files {
     /**
-     * Describes file types.
-     * [ASSET]: A file that is loaded as an asset. This is read only.
-     * [RESOURCE]: A file that is loaded as a resource. This is read and write.
+     * The type a file handle can be.
+     * ASSET: An asset file. On Desktop, the applications' root directory is used. If the file is not found there, the classpath will be used. Asset files are always read-only.
+     * LOCAL: A local file. On Desktop, the applications' root directory is used. Local files can be read-write.
+     * EXTERNAL: An external file. On Desktop, the users' home directory is used. External files can be read-write.
+     * ABSOLUTE: An absolute file. Absolute files can be read-write.
+     * ZIP: A zip file. This represents a file inside a zip archive.
      */
     enum class Type {
         ASSET,
-        RESOURCE
+        LOCAL,
+        EXTERNAL,
+        ABSOLUTE,
+        ZIP
     }
 
     /**
@@ -42,121 +44,32 @@ interface Files {
     val nativeEndianness: Endianness
 
     /**
-     * Lists all files in the given directory.
-     *
-     * @param file The directory to list.
-     * @param type The type of [file].
-     * @param block The block to execute for each file.
+     * Creates a new asset file handle.
      */
-    fun list(file: String, type: Type, block: (String) -> Unit)
+    fun asset(path: String): FileHandle
 
     /**
-     * Check if the given file exists.
-     *
-     * @param file The directory to list.
-     * @param type The type of [file].
-     *
-     * @return True if the file exists, false otherwise.
+     * Creates a new local file handle.
      */
-    fun exists(file: String, type: Type): Boolean
+    fun local(path: String): FileHandle
 
     /**
-     * Deletes the given resource file.
-     *
-     * @param file The file to delete.
+     * Creates a new external file handle.
      */
-    fun deleteResource(file: String)
+    fun external(path: String): FileHandle
 
     /**
-     * Reads the given asset file.
-     *
-     * @param file The file to read.
-     *
-     * @return A stream to read the files' contents from.
+     * Creates a new absolute file handle.
      */
-    fun readAsset(file: String): ReadStream
+    fun absolute(path: String): FileHandle
 
     /**
-     * Reads the given resource file.
-     *
-     * @param file The file to read.
-     *
-     * @return A stream to read the files' contents from.
+     * Opens a zip file handle as a zip archive.
      */
-    fun readResource(file: String): ReadStream
+    fun openZip(file: FileHandle): ZipArchive?
 
     /**
-     * Writes the given resource file.
-     *
-     * @param file The file to write.
-     *
-     * @return A stream to write the files' contents to.
+     * Builds a zip archive and saves it to the specified file handle on [ZipBuilder.finish].
      */
-    fun writeResource(file: String, append: Boolean): WriteStream
+    fun buildZip(file: FileHandle): ZipBuilder
 }
-
-/**
- * Resolves a relative file path.
- * The path is relative to [from]. It can go up a directory by using "." or "..".
- *
- * @param from The path to resolve.
- * @param file The path to resolve to.
- *
- * @return The resolved path.
- */
-fun Files.resolve(from: String, file: String): String {
-    var path = from
-    for (part in file.split(separator)) {
-        if (part == "." || part == "..")
-            path = path.substring(0, path.lastIndexOf(separator))
-        else
-            path += separator + part
-    }
-    return path
-}
-
-/**
- * Reads the given file with the given [type] and [charset] to a string.
- *
- * @param file The file to read.
- * @param type The type of [file].
- * @param charset The charset to use. Defaults to UTF-8.
- *
- * @return The contents of the file as a string.
- */
-fun Files.readToString(file: String, type: Files.Type, charset: Charset = Charsets.UTF8) = when (type) {
-    Files.Type.RESOURCE -> readResource(file)
-    Files.Type.ASSET -> readAsset(file)
-}.use {
-    it.readString(charset)
-}
-
-/**
- * Reads the given file with the given [type]to a byte array.
- *
- * @param file The file to read.
- * @param type The type of [file].
- *
- * @return The contents of the file as a byte array.
- */
-fun Files.readToBytes(file: String, type: Files.Type) = when (type) {
-    Files.Type.RESOURCE -> readResource(file)
-    Files.Type.ASSET -> readAsset(file)
-}.use {
-    it.readAllBytes()
-}
-
-/**
- * Builds a file path from the given parts using the current platform's file separator.
- *
- * @param parts The parts of the file path.
- *
- * @return The file path.
- */
-fun buildFilePath(vararg parts: String) = parts.joinToString(Kore.files.separator)
-
-/**
- * Convenience function to concatenate strings to a file path using the current platform's file separator.
- */
-operator fun String.div(part: String) = buildFilePath(this, part)
-
