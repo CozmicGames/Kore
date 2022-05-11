@@ -97,6 +97,16 @@ interface FileHandle {
      */
     fun moveTo(file: FileHandle)
 
+    /**
+     * Opens this as a zip archive, if it is one.
+     */
+    fun openZip(): ZipArchive?
+
+    /**
+     * Builds a zip archive and saves it to this file handle on [ZipBuilder.finish].
+     */
+    fun buildZip(): ZipBuilder
+
     override fun toString(): String
 
     override fun hashCode(): Int

@@ -36,20 +36,4 @@ class DesktopFiles : Files {
     override fun absolute(path: String): FileHandle {
         return DesktopFileHandle(path, Files.Type.EXTERNAL)
     }
-
-    override fun openZip(file: FileHandle): ZipArchive? {
-        if (file is DesktopFileHandle)
-            return DesktopZipArchive(ZipFile(file.file))
-
-        //TODO: Open nested zip files
-        return null
-    }
-
-    override fun buildZip(file: FileHandle): ZipBuilder {
-        if (file is DesktopFileHandle)
-            return DesktopZipBuilder(file.file)
-
-        Kore.log.fail(this::class, "Cannot write to file: $file")
-        throw UnsupportedOperationException()
-    }
 }

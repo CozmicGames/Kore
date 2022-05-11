@@ -62,14 +62,4 @@ interface Files {
      * Creates a new absolute file handle.
      */
     fun absolute(path: String): FileHandle
-
-    /**
-     * Opens a zip file handle as a zip archive.
-     */
-    fun openZip(file: FileHandle): ZipArchive?
-
-    /**
-     * Builds a zip archive and saves it to the specified file handle on [ZipBuilder.finish].
-     */
-    fun buildZip(file: FileHandle): ZipBuilder
 }

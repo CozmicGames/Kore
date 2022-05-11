@@ -4,6 +4,7 @@ import com.cozmicgames.Kore
 import com.cozmicgames.files
 import com.cozmicgames.log
 import java.io.*
+import java.util.zip.ZipFile
 
 class DesktopFileHandle(override val fullPath: String, override val type: Files.Type) : FileHandle {
     internal val file = File(fullPath)
@@ -113,6 +114,14 @@ class DesktopFileHandle(override val fullPath: String, override val type: Files.
 
         copyTo(file)
         delete()
+    }
+
+    override fun openZip(): ZipArchive {
+        return DesktopZipArchive(ZipFile(file))
+    }
+
+    override fun buildZip(): ZipBuilder {
+        return DesktopZipBuilder(file)
     }
 
     override fun toString(): String {

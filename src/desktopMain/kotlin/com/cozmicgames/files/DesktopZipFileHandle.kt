@@ -31,7 +31,7 @@ class DesktopZipFileHandle(private val zipFile: ZipFile, private val entry: ZipE
     }
 
     override fun delete() {
-        Kore.log.fail(this::class, "Cannot delete $fullPath, it is an asset file")
+        Kore.log.fail(this::class, "Cannot delete $fullPath, it is a zip file")
     }
 
     override fun read(): ReadStream {
@@ -39,7 +39,7 @@ class DesktopZipFileHandle(private val zipFile: ZipFile, private val entry: ZipE
     }
 
     override fun write(append: Boolean): WriteStream {
-        Kore.log.fail(this::class, "Cannot write to $fullPath, it is an asset file")
+        Kore.log.fail(this::class, "Cannot write to $fullPath, it is a zip file")
         throw UnsupportedOperationException()
     }
 
@@ -104,8 +104,18 @@ class DesktopZipFileHandle(private val zipFile: ZipFile, private val entry: ZipE
     }
 
     override fun moveTo(file: FileHandle) {
-        copyTo(file)
-        delete()
+        Kore.log.fail(this::class, "Cannot move $fullPath, it is a zip file")
+        throw UnsupportedOperationException()
+    }
+
+    override fun openZip(): ZipArchive {
+        Kore.log.fail(this::class, "Cannot open $fullPath as a nested zip archive")
+        throw UnsupportedOperationException()
+    }
+
+    override fun buildZip(): ZipBuilder {
+        Kore.log.fail(this::class, "Cannot write to $fullPath, it is a zip file")
+        throw UnsupportedOperationException()
     }
 
     override fun toString(): String {

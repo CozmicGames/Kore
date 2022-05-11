@@ -15,7 +15,7 @@ class DesktopZipBuilder(private val file: File) : ZipBuilder {
     }
 
     override fun finish() {
-        val zipFile = File(file.absolutePath + ".zip")
+        val zipFile = File(file.absolutePath)
         val zip = ZipOutputStream(zipFile.outputStream())
         for (entry in entries) {
             zip.putNextEntry(ZipEntry(entry.name))

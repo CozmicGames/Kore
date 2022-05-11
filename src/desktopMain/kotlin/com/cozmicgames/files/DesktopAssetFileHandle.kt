@@ -6,6 +6,7 @@ import com.cozmicgames.files
 import com.cozmicgames.log
 import com.cozmicgames.utils.extensions.directory
 import java.io.*
+import java.util.zip.ZipFile
 import java.util.zip.ZipInputStream
 
 class DesktopAssetFileHandle(override val fullPath: String) : FileHandle {
@@ -120,6 +121,14 @@ class DesktopAssetFileHandle(override val fullPath: String) : FileHandle {
     override fun moveTo(file: FileHandle) {
         copyTo(file)
         delete()
+    }
+
+    override fun openZip(): ZipArchive {
+        return DesktopZipArchive(ZipFile(File(url.toURI())))
+    }
+
+    override fun buildZip(): ZipBuilder {
+        throw UnsupportedOperationException()
     }
 
     override fun toString(): String {
