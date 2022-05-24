@@ -157,3 +157,12 @@ fun FileHandle.readToString(charset: Charset = Charsets.UTF8) = read().use {
 fun FileHandle.readToBytes() = read().use {
     it.readAllBytes()
 }
+
+/**
+ * Builds a zip archive and saves it to this file handle.
+ */
+fun FileHandle.buildZip(block: ZipBuilder.() -> Unit) {
+    val builder = buildZip()
+    builder.block()
+    builder.finish()
+}

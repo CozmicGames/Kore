@@ -1,5 +1,7 @@
 package com.cozmicgames.utils.extensions
 
+import com.cozmicgames.Kore
+import com.cozmicgames.files
 import com.cozmicgames.utils.StringStream
 
 private val formatRegex = Regex("%([-]?\\d+)?(\\w)")
@@ -50,21 +52,21 @@ inline val String.extension: String
 
 inline val String.nameWithExtension: String
     get() {
-        val indexOfSlash = lastIndexOf('/')
-        return substring(if (indexOfSlash == -1) 0 else indexOfSlash + 1, length)
+        val indexOfSeparator = lastIndexOf(Kore.files.separator)
+        return substring(if (indexOfSeparator == -1) 0 else indexOfSeparator + 1, length)
     }
 
 inline val String.nameWithoutExtension: String
     get() {
-        val indexOfSlash = lastIndexOf('/')
+        val indexOfSeparator = lastIndexOf(Kore.files.separator)
         val indexOfPoint = lastIndexOf('.')
-        return substring(if (indexOfSlash == -1) 0 else indexOfSlash + 1, if (indexOfPoint == -1) length else indexOfPoint)
+        return substring(if (indexOfSeparator == -1) 0 else indexOfSeparator + 1, if (indexOfPoint == -1) length else indexOfPoint)
     }
 
 inline val String.directory: String
     get() {
-        val indexOfSlash = lastIndexOf('/')
-        return substring(0, if (indexOfSlash == -1) length else indexOfSlash + 1)
+        val indexOfSeparator = lastIndexOf(Kore.files.separator)
+        return substring(0, if (indexOfSeparator == -1) length else indexOfSeparator + 1)
     }
 
 fun String.words(vararg delimiters: String = whitespaceCharacters()) = StringStream(this).getWords(*delimiters)

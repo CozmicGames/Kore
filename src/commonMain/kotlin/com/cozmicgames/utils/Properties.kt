@@ -1,5 +1,6 @@
 package com.cozmicgames.utils
 
+import com.cozmicgames.utils.extensions.contentHashCode
 import com.cozmicgames.utils.extensions.enumValueOfOrNull
 import com.cozmicgames.utils.maths.*
 import kotlin.reflect.KProperty
@@ -36,7 +37,7 @@ open class Properties {
         PROPERTIES
     }
 
-    private class Value(val name: String, val type: Type, val value: Any, val isArray: Boolean)
+    private data class Value(val name: String, val type: Type, val value: Any, val isArray: Boolean)
 
     private val values = hashMapOf<String, Value>()
 
@@ -424,6 +425,10 @@ open class Properties {
 
     fun clear() {
         values.clear()
+    }
+
+    override fun hashCode(): Int {
+        return values.values.contentHashCode()
     }
 }
 
