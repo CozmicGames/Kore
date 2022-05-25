@@ -152,6 +152,13 @@ fun FileHandle.readToString(charset: Charset = Charsets.UTF8) = read().use {
 }
 
 /**
+ * Writes the specified [string] to this file.
+ */
+fun FileHandle.writeString(string: String, append: Boolean, charset: Charset = Charsets.UTF8) = write(append).use {
+    it.writeString(string, charset)
+}
+
+/**
  * Reads the contents of this file handle as a [ByteArray].
  */
 fun FileHandle.readToBytes() = read().use {
