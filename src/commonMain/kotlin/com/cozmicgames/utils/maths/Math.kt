@@ -60,7 +60,48 @@ fun det(x0: Float, y0: Float, x1: Float, y1: Float) = x0 * y1 - y0 * x1
 
 fun isCCW(p: Vector2, q: Vector2, r: Vector2) = det(q.x - p.x, q.y - p.y, r.x - p.x, r.y - p.y) >= 0.0f
 
-fun areCollinear(p: Vector2, q: Vector2, r: Vector2) = abs(det(q.x - p.x, q.y - p.y, r.x - p.x, r.y - p.y)) <= 1e-32f
+fun isCCW(polygon: Array<Float>, offset: Int, count: Int): Boolean {
+    return !isCW(polygon, offset, count)
+}
+
+fun isCW(polygon: Array<Float>, offset: Int, count: Int): Boolean {
+    if (count <= 2)
+        return false
+
+    var area = 0.0f
+    val last = offset + count - 2
+    var x0 = polygon[last]
+    var y0 = polygon[last + 1]
+    var i = offset
+
+    while (i <= last) {
+        val x1 = polygon[i]
+        val y1 = polygon[i + 1]
+        area += x0 * y1 - x1 * y0
+        x0 = x1
+        y0 = y1
+        i += 2
+    }
+
+    return area < 0
+}
+
+fun reverseVertices(polygon: Array<Float>, offset: Int, count: Int) {
+    val lastX = offset + count - 2
+    var i = offset
+    val n = offset + count / 2
+
+    while (i < n) {
+        val other = lastX - i
+        val x = polygon[i]
+        val y = polygon[i + 1]
+        polygon[i] = polygon[other]
+        polygon[i + 1] = polygon[other + 1]
+        polygon[other] = x
+        polygon[other + 1] = y
+        i += 2
+    }
+}
 
 fun arePointsOnSameSide(a: Vector2, b: Vector2, c: Vector2, d: Vector2): Boolean {
     val px = d.x - c.x

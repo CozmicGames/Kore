@@ -111,7 +111,7 @@ class GLTexture2DUniform(val pipeline: GLPipeline, val slot: Int, name: String, 
         val previous = glGetInteger(GL_CURRENT_PROGRAM)
         glUseProgram(pipeline.shader)
 
-        val location = if (count > 0)
+        val location = if (count > 1)
             glGetUniformLocation(pipeline.shader, "$name[0]")
         else
             glGetUniformLocation(pipeline.shader, name)
@@ -121,7 +121,6 @@ class GLTexture2DUniform(val pipeline: GLPipeline, val slot: Int, name: String, 
             repeat(count) {
                 values.put(it, slot + it)
             }
-
             glUniform1iv(location, values)
         }
 
@@ -147,7 +146,7 @@ class GLTexture3DUniform(val pipeline: GLPipeline, val slot: Int, name: String, 
         val previous = glGetInteger(GL_CURRENT_PROGRAM)
         glUseProgram(pipeline.shader)
 
-        val location = if (count > 0)
+        val location = if (count > 1)
             glGetUniformLocation(pipeline.shader, "$name[0]")
         else
             glGetUniformLocation(pipeline.shader, name)
@@ -183,7 +182,7 @@ class GLTextureCubeUniform(val pipeline: GLPipeline, val slot: Int, name: String
         val previous = glGetInteger(GL_CURRENT_PROGRAM)
         glUseProgram(pipeline.shader)
 
-        val location = if (count > 0)
+        val location = if (count > 1)
             glGetUniformLocation(pipeline.shader, "$name[0]")
         else
             glGetUniformLocation(pipeline.shader, name)

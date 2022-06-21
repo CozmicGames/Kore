@@ -19,10 +19,6 @@ class GLFramebuffer : Framebuffer {
     private inner class AttachmentObject(val texture: Texture2D) : Disposable {
         constructor(format: Texture.Format) : this(Kore.graphics.createTexture2D(format))
 
-        fun update(width: Int, height: Int) {
-            texture.setSize(width, height)
-        }
-
         override fun dispose() {
             texture.dispose()
         }
@@ -95,7 +91,9 @@ class GLFramebuffer : Framebuffer {
 
                 obj.texture.setSize(width, height)
 
-                glFramebufferTexture(GL_FRAMEBUFFER, glAttachment, (obj.texture as GLTexture2D).handle, 0)
+                GLManager.checkErrors {
+                    glFramebufferTexture(GL_FRAMEBUFFER, glAttachment, (obj.texture as GLTexture2D).handle, 0)
+                }
             }
 
             GLManager.checkErrors {
@@ -110,6 +108,7 @@ class GLFramebuffer : Framebuffer {
             when (glCheckFramebufferStatus(GL_FRAMEBUFFER)) {
                 GL_FRAMEBUFFER_INCOMPLETE_ATTACHMENT -> Kore.log.fail(this::class, "Framebuffer attachment incomplete")
                 GL_FRAMEBUFFER_INCOMPLETE_MISSING_ATTACHMENT -> Kore.log.fail(this::class, "Framebuffer attachment missing")
+                GL_FRAMEBUFFER_INCOMPLETE_DRAW_BUFFER -> Kore.log.fail(this::class, "Framebuffer draw buffer is incomplete")
                 GL_FRAMEBUFFER_UNSUPPORTED -> Kore.log.fail(this::class, "Framebuffers are unsupported")
             }
         }

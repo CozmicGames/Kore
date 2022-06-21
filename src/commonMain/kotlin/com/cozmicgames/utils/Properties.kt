@@ -3,6 +3,8 @@ package com.cozmicgames.utils
 import com.cozmicgames.utils.extensions.contentHashCode
 import com.cozmicgames.utils.extensions.enumValueOfOrNull
 import com.cozmicgames.utils.maths.*
+import kotlin.reflect.KMutableProperty
+import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
 
 open class Properties {
@@ -559,6 +561,8 @@ open class Vector3Delegate(setDefaults: (Vector3) -> Unit) : FloatVectorDelegate
 
 open class Vector4Delegate(setDefaults: (Vector4) -> Unit) : FloatVectorDelegate<Vector4>(setDefaults, Vector4())
 
+open class ColorDelegate(setDefaults: (Color) -> Unit) : FloatVectorDelegate<Color>(setDefaults, Color())
+
 open class Vector2iDelegate(setDefaults: (Vector2i) -> Unit) : IntVectorDelegate<Vector2i>(setDefaults, Vector2i())
 
 open class Vector3iDelegate(setDefaults: (Vector3i) -> Unit) : IntVectorDelegate<Vector3i>(setDefaults, Vector3i())
@@ -596,3 +600,25 @@ fun vector2i(setDefaults: (Vector2i) -> Unit) = Vector2iDelegate(setDefaults)
 fun vector3i(setDefaults: (Vector3i) -> Unit) = Vector3iDelegate(setDefaults)
 
 fun vector4i(setDefaults: (Vector4i) -> Unit) = Vector4iDelegate(setDefaults)
+
+fun color(setDefaults: (Color) -> Unit) = ColorDelegate(setDefaults)
+
+fun Properties.readIntProperty(property: KMutableProperty0<Int>) {
+    val value = getInt(property.name) ?: return
+    property.set(value)
+}
+
+fun Properties.readFloatProperty(property: KMutableProperty0<Float>) {
+    val value = getFloat(property.name) ?: return
+    property.set(value)
+}
+
+fun Properties.readBooleanProperty(property: KMutableProperty0<Boolean>) {
+    val value = getBoolean(property.name) ?: return
+    property.set(value)
+}
+
+fun Properties.readStringProperty(property: KMutableProperty0<String>) {
+    val value = getString(property.name) ?: return
+    property.set(value)
+}

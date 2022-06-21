@@ -37,12 +37,9 @@ class VectorPath : Iterable<Vector2> {
                 return false
 
             for (i in (2 until count - 1)) {
-                if (!isCCW(this[i - 1], this[i], this[i + 1]))
+                if (!isCCW(this[i - 1], this[i], this[i + 1 % count]))
                     return false
             }
-
-            if (!isCCW(this[count - 1], this[count], this[0]))
-                return false
 
             return true
         }
