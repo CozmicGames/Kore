@@ -17,7 +17,9 @@ import java.util.*
 
 class GLFramebuffer : Framebuffer {
     private inner class AttachmentObject(val texture: Texture2D) : Disposable {
-        constructor(format: Texture.Format) : this(Kore.graphics.createTexture2D(format))
+        constructor(format: Texture.Format, minFilter: Texture.Filter, magFilter: Texture.Filter, mipFilter: Texture.Filter?) : this(Kore.graphics.createTexture2D(format) {
+            setFilter(minFilter, magFilter, mipFilter)
+        })
 
         override fun dispose() {
             texture.dispose()
@@ -41,8 +43,8 @@ class GLFramebuffer : Framebuffer {
         DesktopStatistics.numFramebuffers++
     }
 
-    override fun addAttachment(attachment: Framebuffer.Attachment, format: Texture.Format) {
-        attachmentObjects.put(attachment, AttachmentObject(format))?.dispose()
+    override fun addAttachment(attachment: Framebuffer.Attachment, format: Texture.Format, minFilter: Texture.Filter, magFilter: Texture.Filter, mipFilter: Texture.Filter?) {
+        attachmentObjects.put(attachment, AttachmentObject(format, minFilter, magFilter, mipFilter))?.dispose()
     }
 
     override fun addAttachment(attachment: Framebuffer.Attachment, texture: Texture2D) {

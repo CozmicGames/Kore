@@ -2,11 +2,9 @@ package com.cozmicgames.utils.maths
 
 import com.cozmicgames.utils.Time
 import com.cozmicgames.utils.extensions.clamp
-import kotlin.math.abs
-import kotlin.math.max
-import kotlin.math.pow
-import kotlin.math.sqrt
+import kotlin.math.*
 import kotlin.random.Random
+
 
 const val PI = 3.1415926536f
 const val HALF_PI = PI * 0.5f
@@ -256,4 +254,97 @@ fun forEachLinePoint(x0: Int, y0: Int, x1: Int, y1: Int, block: (Int, Int) -> Un
                 d -= dy2
             }
         }
+}
+
+fun generatePoissonDiskSamplingPoints(radius: Float, minDistance: Float, tries: Int, random: Random = Random, callback: (Float, Float) -> Unit) {
+    val radiusSquared = radius * radius
+    val minDistanceSquared = minDistance * minDistance
+    val cellSize = minDistance / sqrt(2.0).toFloat()
+    val numCells = (radius * 2.0f / cellSize).toInt() + 1
+    val grid = arrayOfNulls<Vector2>(numCells * numCells)
+    val processList = arrayListOf<Vector2>()
+
+    fun searchNeighbors(px: Float, py: Float): Boolean {
+        val row = ((py + radius) / cellSize).toInt()
+        val col = ((px + radius) / cellSize).toInt()
+
+        if (grid[row * numCells + col] != null)
+            return true
+
+        val minX = max(0, col - 1)
+        val minY = max(0, row - 1)
+        val maxX = min(col + 1, numCells - 1)
+        val maxY = min(row + 1, numCells - 1)
+
+        repeat(maxY - minY) { yy ->
+            val y = minY + yy
+
+            repeat(maxX - minX) { xx ->
+                val x = minX + xx
+
+                val v = grid[y * numCells + x]
+
+                if (v != null) {
+                    val dx = v.x - px
+                    val dy = v.y - py
+                    if (dx * dx + dy * dy < minDistanceSquared) {
+                        return true
+                    }
+                }
+            }
+        }
+
+        return false
+    }
+
+    fun insert(p: Vector2) {
+        val row = ((p.y + radius) / cellSize).toInt()
+        val col = ((p.x + radius) / cellSize).toInt()
+        grid[row * numCells + col] = p
+    }
+
+    var x: Float
+    var y: Float
+    do {
+        x = random.nextFloat() * 2.0f - 1.0f
+        y = random.nextFloat() * 2.0f - 1.0f
+    } while (x * x + y * y > 1.0f)
+
+    val initial = Vector2(x, y)
+
+    processList.add(initial)
+    callback(initial.x, initial.y)
+    insert(initial)
+
+    while (!processList.isEmpty()) {
+        val i = random.nextInt(processList.size)
+        val sample = processList[i]
+        var found = false
+
+        search@ for (s in (0 until tries)) {
+            val angle = random.nextFloat() * TWO_PI
+            val radius = minDistance * (random.nextFloat() + 1.0f)
+            x = radius * sin(angle + HALF_PI)
+            y = radius * sin(angle)
+            x += sample.x
+            y += sample.y
+            if (x * x + y * y > radiusSquared)
+                continue@search
+            if (!searchNeighbors(x, y)) {
+                found = true
+                callback(x, y)
+                val f = Vector2(x, y)
+                processList.add(f)
+                insert(f)
+                break
+            }
+        }
+        if (!found)
+            processList.removeAt(i)
+    }
+}
+
+fun generatePoissonDiskSamplingPoints(radius: Float, minDistance: Float, tries: Int, random: Random = Random, dest: MutableList<Vector2> = arrayListOf()): MutableList<Vector2> {
+    generatePoissonDiskSamplingPoints(radius, minDistance, tries, random) { x, y -> dest.add(Vector2(x, y)) }
+    return dest
 }

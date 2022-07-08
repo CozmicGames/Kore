@@ -21,7 +21,7 @@ interface Framebuffer : Disposable {
 
     val attachments: Iterable<Attachment>
 
-    fun addAttachment(attachment: Attachment, format: Texture.Format)
+    fun addAttachment(attachment: Attachment, format: Texture.Format, minFilter: Texture.Filter = Texture.Filter.NEAREST, magFilter: Texture.Filter = minFilter, mipFilter: Texture.Filter? = null)
     fun addAttachment(attachment: Attachment, texture: Texture2D)
     fun removeAttachment(attachment: Attachment)
     fun update(width: Int, height: Int)
