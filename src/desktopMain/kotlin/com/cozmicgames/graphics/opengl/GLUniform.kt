@@ -134,7 +134,7 @@ class GLTexture2DUniform(val pipeline: GLPipeline, val slot: Int, name: String, 
 
     override fun apply() {
         repeat(count) {
-            val texture = values[it] as GLTexture3D
+            val texture = values[it] as GLTexture2D
             GLManager.bindTexture2D(texture.handle, slot + it)
             texture.updateSamplerState()
         }
@@ -210,7 +210,7 @@ class GLTextureCubeUniform(val pipeline: GLPipeline, val slot: Int, name: String
 
     override fun apply() {
         repeat(count) {
-            val texture = values[it] as GLTexture3D
+            val texture = values[it] as GLTextureCube
             GLManager.bindTextureCube(texture.handle, slot + it)
             texture.updateSamplerState()
         }

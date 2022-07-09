@@ -28,7 +28,7 @@ open class GLTexture3D(format: Format, private var sampler: Sampler) : Comparabl
     private var internalHeight = 0
     private var internalDepth = 0
 
-    private var isSamplerUpdated = false
+    private var isSamplerUpdated = true
 
     init {
         DesktopStatistics.numTextures++

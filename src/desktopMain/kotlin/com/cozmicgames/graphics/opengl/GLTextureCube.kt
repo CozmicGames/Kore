@@ -15,7 +15,7 @@ import org.lwjgl.opengl.GL30C.*
 open class GLTextureCube(format: Format, private var sampler: Sampler) : Comparable<Texture>, TextureCube(format) {
     val handle = glGenTextures()
 
-    private var isSamplerUpdated = false
+    private var isSamplerUpdated = true
 
     init {
         DesktopStatistics.numTextures++

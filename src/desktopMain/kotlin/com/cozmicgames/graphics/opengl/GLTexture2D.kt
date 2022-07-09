@@ -24,7 +24,7 @@ open class GLTexture2D(format: Format, private var sampler: Sampler) : Texture2D
     private var internalWidth = 0
     private var internalHeight = 0
 
-    private var isSamplerUpdated = false
+    private var isSamplerUpdated = true
 
     init {
         DesktopStatistics.numTextures++
