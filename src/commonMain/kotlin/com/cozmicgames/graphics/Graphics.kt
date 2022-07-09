@@ -438,10 +438,10 @@ fun Graphics.getViewRectangle(rectangle: Rectangle = Rectangle()): Rectangle {
 }
 
 private val _defaultSampler by lazy {
-    Kore.graphics.createSampler()
-}.also {
-    Kore.addShutdownListener {
-        (it as? Disposable)?.dispose()
+    Kore.graphics.createSampler().also {
+        Kore.addShutdownListener {
+            it.dispose()
+        }
     }
 }
 
@@ -512,7 +512,7 @@ val Graphics.defaultTexture3D get() = _defaultTexture3D
 fun Graphics.setVertexBuffer(buffer: GraphicsBuffer?, layout: VertexLayout?) = setVertexBuffer(buffer, layout?.indices ?: emptyIntArray())
 
 /**
- * Loads an image from the given [fileHandle].
+ * Loads an image from the given [file].
  * @see [Graphics.readImage]
  *
  * @param file The file handle to load the image from.

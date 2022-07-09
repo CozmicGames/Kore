@@ -84,4 +84,8 @@ class GLSampler : Sampler {
                 it.setSamplerUpdated()
         }
     }
+
+    override fun dispose() {
+
+    }
 }
