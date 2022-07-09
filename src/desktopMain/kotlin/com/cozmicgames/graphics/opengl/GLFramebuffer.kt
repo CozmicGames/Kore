@@ -4,6 +4,7 @@ import com.cozmicgames.Kore
 import com.cozmicgames.graphics
 import com.cozmicgames.graphics.DesktopStatistics
 import com.cozmicgames.graphics.gpu.Framebuffer
+import com.cozmicgames.graphics.gpu.Sampler
 import com.cozmicgames.graphics.gpu.Texture
 import com.cozmicgames.graphics.gpu.Texture2D
 import com.cozmicgames.log
@@ -17,9 +18,7 @@ import java.util.*
 
 class GLFramebuffer : Framebuffer {
     private inner class AttachmentObject(val texture: Texture2D) : Disposable {
-        constructor(format: Texture.Format, minFilter: Texture.Filter, magFilter: Texture.Filter, mipFilter: Texture.Filter?) : this(Kore.graphics.createTexture2D(format) {
-            setFilter(minFilter, magFilter, mipFilter)
-        })
+        constructor(format: Texture.Format, sampler: Sampler) : this(Kore.graphics.createTexture2D(format, sampler))
 
         override fun dispose() {
             texture.dispose()
@@ -43,8 +42,8 @@ class GLFramebuffer : Framebuffer {
         DesktopStatistics.numFramebuffers++
     }
 
-    override fun addAttachment(attachment: Framebuffer.Attachment, format: Texture.Format, minFilter: Texture.Filter, magFilter: Texture.Filter, mipFilter: Texture.Filter?) {
-        attachmentObjects.put(attachment, AttachmentObject(format, minFilter, magFilter, mipFilter))?.dispose()
+    override fun addAttachment(attachment: Framebuffer.Attachment, format: Texture.Format, sampler: Sampler) {
+        attachmentObjects.put(attachment, AttachmentObject(format, sampler))?.dispose()
     }
 
     override fun addAttachment(attachment: Framebuffer.Attachment, texture: Texture2D) {

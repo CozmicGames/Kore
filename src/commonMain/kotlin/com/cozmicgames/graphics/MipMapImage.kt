@@ -2,6 +2,7 @@ package com.cozmicgames.graphics
 
 import com.cozmicgames.Kore
 import com.cozmicgames.graphics
+import com.cozmicgames.graphics.gpu.Sampler
 import com.cozmicgames.graphics.gpu.Texture
 import com.cozmicgames.graphics.gpu.Texture2D
 import kotlin.math.min
@@ -88,7 +89,7 @@ class MipMapImage(image: Image, minSize: Int = 1) : Iterable<MipMapImage.Level> 
  *
  * @return The created texture.
  */
-fun MipMapImage.toTexture2D(format: Texture.Format = Texture.Format.RGBA8_UNORM, block: Texture2D.() -> Unit = {}) = Kore.graphics.createTexture2D(format, block).also {
+fun MipMapImage.toTexture2D(sampler: Sampler, format: Texture.Format = Texture.Format.RGBA8_UNORM, block: Texture2D.() -> Unit = {}) = Kore.graphics.createTexture2D(format, sampler, block).also {
     repeat(numLevels) { level ->
         it.setImage(this[level].image, level)
     }

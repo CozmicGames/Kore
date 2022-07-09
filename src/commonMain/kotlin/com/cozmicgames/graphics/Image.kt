@@ -2,6 +2,7 @@ package com.cozmicgames.graphics
 
 import com.cozmicgames.Kore
 import com.cozmicgames.graphics
+import com.cozmicgames.graphics.gpu.Sampler
 import com.cozmicgames.memory.Memory
 import com.cozmicgames.memory.of
 import com.cozmicgames.utils.Color
@@ -369,7 +370,7 @@ fun Image.split(columns: Int, rows: Int): Array2D<Image> {
  *
  * @return The created texture.
  */
-fun Image.toTexture2D(format: Texture.Format = Texture.Format.RGBA8_UNORM, block: Texture2D.() -> Unit = {}) = Kore.graphics.createTexture2D(format, block).also {
+fun Image.toTexture2D(sampler: Sampler, format: Texture.Format = Texture.Format.RGBA8_UNORM, block: Texture2D.() -> Unit = {}) = Kore.graphics.createTexture2D(format, sampler, block).also {
     it.setImage(this)
 }
 
