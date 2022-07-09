@@ -1,6 +1,7 @@
 package com.cozmicgames.graphics.opengl
 
 import com.cozmicgames.graphics.DesktopStatistics
+import com.cozmicgames.graphics.gpu.Sampler
 import com.cozmicgames.graphics.gpu.Texture
 import com.cozmicgames.graphics.gpu.Texture3D
 import com.cozmicgames.memory.Memory
@@ -11,7 +12,7 @@ import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL30C.*
 import java.nio.ByteBuffer
 
-open class GLTexture3D(format: Format) : Comparable<Texture>, Texture3D(format) {
+open class GLTexture3D(format: Format, private var sampler: Sampler) : Comparable<Texture>, Texture3D(format) {
     var handle = glGenTextures()
 
     override val width: Int
@@ -27,81 +28,90 @@ open class GLTexture3D(format: Format) : Comparable<Texture>, Texture3D(format) 
     private var internalHeight = 0
     private var internalDepth = 0
 
+    private var isSamplerUpdated = false
+
     init {
         DesktopStatistics.numTextures++
+        (sampler as GLSampler).addTexture(this)
     }
 
-    override fun setFilter(min: Filter, mag: Filter, mip: Filter?) {
-        val minFilter = when (mip) {
-            null -> when (min) {
-                Filter.NEAREST -> GL_NEAREST
-                Filter.LINEAR -> GL_LINEAR
-            }
-            Filter.NEAREST -> when (min) {
-                Filter.NEAREST -> GL_NEAREST_MIPMAP_NEAREST
-                Filter.LINEAR -> GL_LINEAR_MIPMAP_NEAREST
-            }
-            Filter.LINEAR -> when (min) {
-                Filter.NEAREST -> GL_NEAREST_MIPMAP_LINEAR
-                Filter.LINEAR -> GL_LINEAR_MIPMAP_LINEAR
-            }
-        }
-
-        val magFilter = when (mip) {
-            null -> when (mag) {
-                Filter.NEAREST -> GL_NEAREST
-                Filter.LINEAR -> GL_LINEAR
-            }
-            Filter.NEAREST -> when (mag) {
-                Filter.NEAREST -> GL_NEAREST_MIPMAP_NEAREST
-                Filter.LINEAR -> GL_LINEAR_MIPMAP_NEAREST
-            }
-            Filter.LINEAR -> when (mag) {
-                Filter.NEAREST -> GL_NEAREST_MIPMAP_LINEAR
-                Filter.LINEAR -> GL_LINEAR_MIPMAP_LINEAR
-            }
-        }
-
-        tempBind {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, minFilter)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter)
-        }
+    override fun setSampler(sampler: Sampler) {
+        (this.sampler as? GLSampler)?.removeTexture(this)
+        this.sampler = sampler
+        (sampler as GLSampler).addTexture(this)
+        setSamplerUpdated()
     }
 
-    override fun setWrap(s: Wrap, t: Wrap) {
-        val sWrap = when (s) {
-            Wrap.CLAMP -> GL_CLAMP_TO_EDGE
-            Wrap.MIRROR -> GL_MIRRORED_REPEAT
-            Wrap.REPEAT -> GL_REPEAT
-        }
-
-        val tWrap = when (s) {
-            Wrap.CLAMP -> GL_CLAMP_TO_EDGE
-            Wrap.MIRROR -> GL_MIRRORED_REPEAT
-            Wrap.REPEAT -> GL_REPEAT
-        }
-
-        tempBind {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, sWrap)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, tWrap)
-        }
+    fun setSamplerUpdated() {
+        isSamplerUpdated = true
     }
 
-    override fun setAnisotropy(anisotropy: Float) {
-        if (!GL.getCapabilities().GL_EXT_texture_filter_anisotropic)
+    fun updateSamplerState() {
+        if (!isSamplerUpdated)
             return
 
-        tempBind {
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, anisotropy.clamp(0.0f, glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY)))
+        isSamplerUpdated = false
+
+        val minFilter = when (sampler.mipFilter) {
+            null -> when (sampler.minFilter) {
+                Filter.NEAREST -> GL_NEAREST
+                Filter.LINEAR -> GL_LINEAR
+            }
+            Filter.NEAREST -> when (sampler.minFilter) {
+                Filter.NEAREST -> GL_NEAREST_MIPMAP_NEAREST
+                Filter.LINEAR -> GL_LINEAR_MIPMAP_NEAREST
+            }
+            Filter.LINEAR -> when (sampler.minFilter) {
+                Filter.NEAREST -> GL_NEAREST_MIPMAP_LINEAR
+                Filter.LINEAR -> GL_LINEAR_MIPMAP_LINEAR
+            }
         }
-    }
 
-    override fun setLOD(minLOD: Float, maxLOD: Float, bias: Float) {
+        val magFilter = when (sampler.mipFilter) {
+            null -> when (sampler.magFilter) {
+                Filter.NEAREST -> GL_NEAREST
+                Filter.LINEAR -> GL_LINEAR
+            }
+            Filter.NEAREST -> when (sampler.magFilter) {
+                Filter.NEAREST -> GL_NEAREST_MIPMAP_NEAREST
+                Filter.LINEAR -> GL_LINEAR_MIPMAP_NEAREST
+            }
+            Filter.LINEAR -> when (sampler.magFilter) {
+                Filter.NEAREST -> GL_NEAREST_MIPMAP_LINEAR
+                Filter.LINEAR -> GL_LINEAR_MIPMAP_LINEAR
+            }
+        }
+
+        val sWrap = when (sampler.xWrap) {
+            Wrap.CLAMP -> GL_CLAMP_TO_EDGE
+            Wrap.MIRROR -> GL_MIRRORED_REPEAT
+            Wrap.REPEAT -> GL_REPEAT
+        }
+
+        val tWrap = when (sampler.yWrap) {
+            Wrap.CLAMP -> GL_CLAMP_TO_EDGE
+            Wrap.MIRROR -> GL_MIRRORED_REPEAT
+            Wrap.REPEAT -> GL_REPEAT
+        }
+
+        val rWrap = when (sampler.zWrap) {
+            Wrap.CLAMP -> GL_CLAMP_TO_EDGE
+            Wrap.MIRROR -> GL_MIRRORED_REPEAT
+            Wrap.REPEAT -> GL_REPEAT
+        }
+
         tempBind {
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD, minLOD)
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, maxLOD)
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, bias)
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MIN_FILTER, minFilter)
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_MAG_FILTER, magFilter)
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_S, sWrap)
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_T, tWrap)
+            glTexParameteri(GL_TEXTURE_3D, GL_TEXTURE_WRAP_R, rWrap)
+            glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MIN_LOD, sampler.minLOD)
+            glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_LOD, sampler.maxLOD)
+            glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_LOD_BIAS, sampler.lodBias)
 
+            if (GL.getCapabilities().GL_EXT_texture_filter_anisotropic)
+                glTexParameterf(GL_TEXTURE_3D, GL_TEXTURE_MAX_ANISOTROPY, sampler.maxAnisotropy.clamp(0.0f, glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY)))
         }
     }
 

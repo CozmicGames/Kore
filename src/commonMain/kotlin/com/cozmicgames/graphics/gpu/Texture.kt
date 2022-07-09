@@ -71,10 +71,7 @@ sealed class Texture(val format: Format) : Comparable<Texture>, Disposable {
         STENCIL8(false, 0)
     }
 
-    abstract fun setFilter(min: Filter, mag: Filter, mip: Filter? = null)
-    abstract fun setWrap(s: Wrap, t: Wrap = s)
-    abstract fun setAnisotropy(anisotropy: Float)
-    abstract fun setLOD(minLOD: Float, maxLOD: Float, bias: Float = 0.0f)
+    abstract fun setSampler(sampler: Sampler)
 }
 
 abstract class Texture2D(format: Format) : Texture(format) {

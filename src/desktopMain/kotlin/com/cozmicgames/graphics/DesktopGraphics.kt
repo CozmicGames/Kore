@@ -14,6 +14,7 @@ import org.lwjgl.glfw.GLFWDropCallback
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL.createCapabilities
+import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL20C.*
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.memAlloc
@@ -209,13 +210,15 @@ class DesktopGraphics : Graphics, Disposable {
 
     override fun createBuffer(usage: GraphicsBuffer.Usage, block: GraphicsBuffer.() -> Unit) = impl.createBuffer(usage, block)
 
-    override fun createTexture2D(format: Texture.Format, block: Texture2D.() -> Unit) = impl.createTexture2D(format, block)
+    override fun createTexture2D(format: Texture.Format, sampler: Sampler, block: Texture2D.() -> Unit) = impl.createTexture2D(format, sampler, block)
 
-    override fun createTextureCube(format: Texture.Format, block: TextureCube.() -> Unit) = impl.createTextureCube(format, block)
+    override fun createTextureCube(format: Texture.Format, sampler: Sampler, block: TextureCube.() -> Unit) = impl.createTextureCube(format, sampler, block)
 
-    override fun createTexture3D(format: Texture.Format, block: Texture3D.() -> Unit) = impl.createTexture3D(format, block)
+    override fun createTexture3D(format: Texture.Format, sampler: Sampler, block: Texture3D.() -> Unit) = impl.createTexture3D(format, sampler, block)
 
     override fun createFramebuffer(block: Framebuffer.() -> Unit) = impl.createFramebuffer(block)
+
+    override fun createSampler(block: Sampler.() -> Unit) = impl.createSampler(block)
 
     override fun setPipeline(pipeline: Pipeline?) = impl.setPipeline(pipeline)
 

@@ -26,7 +26,9 @@ class GLImage2DUniform(val pipeline: GLPipeline, val slot: Int, name: String) : 
 
     override fun apply() {
         val image = values[0]
-        glBindImageTexture(slot, (image.texture as GLTexture2D).handle, image.level, false, 0, GL_READ_WRITE, image.texture.format.toInternalGLFormat())
+        val texture = image.texture as GLTexture2D
+        glBindImageTexture(slot, texture.handle, image.level, false, 0, GL_READ_WRITE, image.texture.format.toInternalGLFormat())
+        texture.updateSamplerState()
     }
 }
 
@@ -47,7 +49,9 @@ class GLImage3DUniform(val pipeline: GLPipeline, val slot: Int, name: String) : 
 
     override fun apply() {
         val image = values[0]
-        glBindImageTexture(slot, (image.texture as GLTexture3D).handle, image.level, false, 0, GL_READ_WRITE, image.texture.format.toInternalGLFormat())
+        val texture = image.texture as GLTexture3D
+        glBindImageTexture(slot, texture.handle, image.level, false, 0, GL_READ_WRITE, image.texture.format.toInternalGLFormat())
+        texture.updateSamplerState()
     }
 }
 

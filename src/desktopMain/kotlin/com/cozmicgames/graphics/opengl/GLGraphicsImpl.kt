@@ -41,26 +41,20 @@ abstract class GLGraphicsImpl : GraphicsImpl {
         return buffer
     }
 
-    override fun createTexture2D(format: Texture.Format, block: Texture2D.() -> Unit): Texture2D {
-        val texture = GLTexture2D(format)
-        texture.setFilter(Texture.Filter.NEAREST, Texture.Filter.NEAREST)
-        texture.setWrap(Texture.Wrap.REPEAT, Texture.Wrap.REPEAT)
+    override fun createTexture2D(format: Texture.Format, sampler: Sampler, block: Texture2D.() -> Unit): Texture2D {
+        val texture = GLTexture2D(format, sampler)
         block(texture)
         return texture
     }
 
-    override fun createTextureCube(format: Texture.Format, block: TextureCube.() -> Unit): TextureCube {
-        val texture = GLTextureCube(format)
-        texture.setFilter(Texture.Filter.NEAREST, Texture.Filter.NEAREST)
-        texture.setWrap(Texture.Wrap.REPEAT, Texture.Wrap.REPEAT)
+    override fun createTextureCube(format: Texture.Format, sampler: Sampler, block: TextureCube.() -> Unit): TextureCube {
+        val texture = GLTextureCube(format, sampler)
         block(texture)
         return texture
     }
 
-    override fun createTexture3D(format: Texture.Format, block: Texture3D.() -> Unit): Texture3D {
-        val texture = GLTexture3D(format)
-        texture.setFilter(Texture.Filter.NEAREST, Texture.Filter.NEAREST)
-        texture.setWrap(Texture.Wrap.REPEAT, Texture.Wrap.REPEAT)
+    override fun createTexture3D(format: Texture.Format, sampler: Sampler, block: Texture3D.() -> Unit): Texture3D {
+        val texture = GLTexture3D(format, sampler)
         block(texture)
         return texture
     }
@@ -69,6 +63,12 @@ abstract class GLGraphicsImpl : GraphicsImpl {
         val framebuffer = GLFramebuffer()
         block(framebuffer)
         return framebuffer
+    }
+
+    override fun createSampler(block: Sampler.() -> Unit): Sampler {
+        val sampler = GLSampler()
+        block(sampler)
+        return sampler
     }
 
     override fun setPipeline(pipeline: Pipeline?) {

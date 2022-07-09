@@ -14,10 +14,11 @@ interface GraphicsImpl : Disposable {
 
     fun createPipeline(type: Pipeline.Type, block: Pipeline.() -> Unit): Pipeline
     fun createBuffer(usage: GraphicsBuffer.Usage, block: GraphicsBuffer.() -> Unit): GraphicsBuffer
-    fun createTexture2D(format: Texture.Format, block: Texture2D.() -> Unit): Texture2D
-    fun createTextureCube(format: Texture.Format, block: TextureCube.() -> Unit): TextureCube
-    fun createTexture3D(format: Texture.Format, block: Texture3D.() -> Unit): Texture3D
+    fun createTexture2D(format: Texture.Format, sampler: Sampler, block: Texture2D.() -> Unit): Texture2D
+    fun createTextureCube(format: Texture.Format, sampler: Sampler, block: TextureCube.() -> Unit): TextureCube
+    fun createTexture3D(format: Texture.Format, sampler: Sampler, block: Texture3D.() -> Unit): Texture3D
     fun createFramebuffer(block: Framebuffer.() -> Unit): Framebuffer
+    fun createSampler(block: Sampler.() -> Unit): Sampler
     fun setPipeline(pipeline: Pipeline?)
     fun setFramebuffer(framebuffer: Framebuffer?)
     fun setScissor(rect: ScissorRect?)

@@ -10,6 +10,7 @@ import com.cozmicgames.graphics.gpu.*
 import com.cozmicgames.graphics.gpu.pipeline.PipelineDefinition
 import com.cozmicgames.memory.Memory
 import com.cozmicgames.utils.Color
+import com.cozmicgames.utils.Disposable
 import com.cozmicgames.utils.extensions.emptyIntArray
 import com.cozmicgames.utils.maths.Rectangle
 import com.cozmicgames.utils.use
@@ -181,11 +182,12 @@ interface Graphics {
      * The [format] is used to determine the internal format of the texture.
      *
      * @param format The format of the texture.
+     * @param sampler The sampler for sampling from the texture in a shader.
      * @param block The block to execute to configure the texture.
      *
      * @return The created [Texture2D].
      */
-    fun createTexture2D(format: Texture.Format, block: Texture2D.() -> Unit = {}): Texture2D
+    fun createTexture2D(format: Texture.Format, sampler: Sampler, block: Texture2D.() -> Unit = {}): Texture2D
 
     /**
      * This is part of the abstracted graphics API.
@@ -193,11 +195,12 @@ interface Graphics {
      * The [format] is used to determine the internal format of the texture.
      *
      * @param format The format of the texture.
+     * @param sampler The sampler for sampling from the texture in a shader.
      * @param block The block to execute to configure the texture.
      *
      * @return The created [TextureCube].
      */
-    fun createTextureCube(format: Texture.Format, block: TextureCube.() -> Unit = {}): TextureCube
+    fun createTextureCube(format: Texture.Format, sampler: Sampler, block: TextureCube.() -> Unit = {}): TextureCube
 
     /**
      * This is part of the abstracted graphics API.
@@ -205,11 +208,12 @@ interface Graphics {
      * The [format] is used to determine the internal format of the texture.
      *
      * @param format The format of the texture.
+     * @param sampler The sampler for sampling from the texture in a shader.
      * @param block The block to execute to configure the texture.
      *
      * @return The created [Texture3D].
      */
-    fun createTexture3D(format: Texture.Format, block: Texture3D.() -> Unit = {}): Texture3D
+    fun createTexture3D(format: Texture.Format, sampler: Sampler, block: Texture3D.() -> Unit = {}): Texture3D
 
     /**
      * This is part of the abstracted graphics API.
@@ -223,6 +227,17 @@ interface Graphics {
      * @return The created [Framebuffer].
      */
     fun createFramebuffer(block: Framebuffer.() -> Unit = {}): Framebuffer
+
+    /**
+     * This is part of the abstracted graphics API.
+     * Creates a new [Sampler].
+     * A sampler is used to sample textures.
+     *
+     * @param block The block to execute to configure the sampler.
+     *
+     * @return The created [Sampler].
+     */
+    fun createSampler(block: Sampler.() -> Unit = {}): Sampler
 
     /**
      * This is part of the abstracted graphics API.
@@ -422,8 +437,16 @@ fun Graphics.getViewRectangle(rectangle: Rectangle = Rectangle()): Rectangle {
     return rectangle
 }
 
+private val _defaultSampler by lazy {
+    Kore.graphics.createSampler()
+}.also {
+    Kore.addShutdownListener {
+        (it as? Disposable)?.dispose()
+    }
+}
+
 private val _defaultTexture2D by lazy {
-    Kore.graphics.createTexture2D(Texture.Format.RGBA8_UNORM) {
+    Kore.graphics.createTexture2D(Texture.Format.RGBA8_UNORM, _defaultSampler) {
         Memory(Memory.SIZEOF_INT).use {
             it.setInt(0, Color.MAGENTA.bits)
             setImage(1, 1, it)
@@ -436,7 +459,7 @@ private val _defaultTexture2D by lazy {
 }
 
 private val _defaultTextureCube by lazy {
-    Kore.graphics.createTextureCube(Texture.Format.RGBA8_UNORM) {
+    Kore.graphics.createTextureCube(Texture.Format.RGBA8_UNORM, _defaultSampler) {
         Memory(Memory.SIZEOF_INT).use {
             it.setInt(0, Color.MAGENTA.bits)
             setImages(1, 1, Texture.Format.RGBA8_UNORM) {
@@ -456,7 +479,7 @@ private val _defaultTextureCube by lazy {
 }
 
 private val _defaultTexture3D by lazy {
-    Kore.graphics.createTexture3D(Texture.Format.RGBA8_UNORM) {
+    Kore.graphics.createTexture3D(Texture.Format.RGBA8_UNORM, _defaultSampler) {
         Memory(Memory.SIZEOF_INT).use {
             it.setInt(0, Color.MAGENTA.bits)
             setImage(1, 1, 1, it)
