@@ -6,7 +6,7 @@ import kotlin.math.min
 /**
  * A struct buffer is a resizable collection of structs that can be accessed by index.
  * The structs in the buffer use a shared [Memory] instance to store their data.
- * They in a contiguous block of memory and can be accessed by index.
+ * They are in a contiguous block of memory and can be accessed by index.
  * Struct buffers must be disposed of when no longer needed.
  *
  * @param T The struct type.

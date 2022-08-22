@@ -67,6 +67,8 @@ class GL43BufferUniform(val pipeline: GL43Pipeline, name: String, size: Int, val
 
     override fun apply() {
         val handle = (this.buffer as? GLGraphicsBuffer)?.handle ?: 0
-        glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, handle)
+        GLManager.checkErrors {
+            glBindBufferBase(GL_SHADER_STORAGE_BUFFER, binding, handle)
+        }
     }
 }

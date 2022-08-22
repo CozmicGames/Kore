@@ -5,7 +5,7 @@ import com.cozmicgames.utils.Disposable
 /**
  * A struct array is a collection of structs that can be accessed by index.
  * The structs in the array use a shared [Memory] instance to store their data.
- * They in a contiguous block of memory and can be accessed by index.
+ * They are in a contiguous block of memory and can be accessed by index.
  * Struct arrays must be disposed of when no longer needed.
  *
  * @param T The struct type.

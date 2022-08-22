@@ -216,8 +216,8 @@ object ProgramLibrary {
         return buildString {
             lines.forEach {
                 if (it.removeComments().trim().startsWith("#include")) {
-                    val i0 = it.indexOf('"') + 1
-                    val i1 = it.indexOf('"', i0)
+                    val i0 = it.indexOfAny(charArrayOf('"', '<')) + 1
+                    val i1 = it.indexOfAny(charArrayOf('"', '>'), i0)
                     val name = it.substring(i0, i1)
                     appendLine(process(getInclude(name)))
                 } else
