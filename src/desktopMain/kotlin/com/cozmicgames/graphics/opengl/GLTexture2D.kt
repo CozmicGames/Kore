@@ -29,6 +29,7 @@ open class GLTexture2D(format: Format, private var sampler: Sampler) : Texture2D
     init {
         DesktopStatistics.numTextures++
         (sampler as GLSampler).addTexture(this)
+        updateSamplerState()
     }
 
     override fun setSampler(sampler: Sampler) {
@@ -101,19 +102,31 @@ open class GLTexture2D(format: Format, private var sampler: Sampler) : Texture2D
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, sWrap)
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, tWrap)
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, rWrap)
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD, sampler.minLOD)
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, sampler.maxLOD)
-            glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, sampler.lodBias)
 
-            if (GL.getCapabilities().GL_EXT_texture_filter_anisotropic)
-                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, sampler.maxAnisotropy.clamp(0.0f, glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY)))
+            if (!format.isDepthFormat && !format.isStencilFormat) {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, rWrap)
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_LOD, sampler.minLOD)
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_LOD, sampler.maxLOD)
+                glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_LOD_BIAS, sampler.lodBias)
+
+                if (GL.getCapabilities().GL_EXT_texture_filter_anisotropic)
+                    glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY, sampler.maxAnisotropy.clamp(0.0f, glGetFloat(GL_MAX_TEXTURE_MAX_ANISOTROPY)))
+            }
         }
     }
 
     override fun setSize(width: Int, height: Int) {
         tempBind {
-            glTexImage2D(GL_TEXTURE_2D, 0, format.toInternalGLFormat(), width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+            GLManager.checkErrors {
+                val sourceFormat = if(format.isDepthFormat)
+                    GL_DEPTH_COMPONENT
+                else if(format.isStencilFormat)
+                    GL_STENCIL_INDEX
+                else
+                    GL_RGBA
+
+                glTexImage2D(GL_TEXTURE_2D, 0, format.toInternalGLFormat(), width, height, 0, sourceFormat, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+            }
         }
 
         internalWidth = width
@@ -122,7 +135,9 @@ open class GLTexture2D(format: Format, private var sampler: Sampler) : Texture2D
 
     override fun setImage(width: Int, height: Int, data: Memory, dataFormat: Format, offset: Int, level: Int) {
         tempBind {
-            nglTexImage2D(GL_TEXTURE_2D, level, format.toInternalGLFormat(), width, height, 0, dataFormat.toGLFormat(), dataFormat.toGLType(), data.address)
+            GLManager.checkErrors {
+                nglTexImage2D(GL_TEXTURE_2D, level, format.toInternalGLFormat(), width, height, 0, dataFormat.toGLFormat(), dataFormat.toGLType(), data.address)
+            }
         }
 
         internalWidth = width
@@ -131,7 +146,9 @@ open class GLTexture2D(format: Format, private var sampler: Sampler) : Texture2D
 
     override fun setSubImage(x: Int, y: Int, width: Int, height: Int, data: Memory, dataFormat: Format, offset: Int, level: Int) {
         tempBind {
-            nglTexSubImage2D(GL_TEXTURE_2D, level, x, y, width, height, dataFormat.toGLFormat(), dataFormat.toGLType(), data.address + offset)
+            GLManager.checkErrors {
+                nglTexSubImage2D(GL_TEXTURE_2D, level, x, y, width, height, dataFormat.toGLFormat(), dataFormat.toGLType(), data.address + offset)
+            }
         }
     }
 

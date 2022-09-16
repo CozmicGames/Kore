@@ -117,7 +117,9 @@ open class GLTexture3D(format: Format, private var sampler: Sampler) : Comparabl
 
     override fun setSize(width: Int, height: Int, depth: Int) {
         tempBind {
-            glTexImage3D(GL_TEXTURE_3D, 0, format.toInternalGLFormat(), width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+            GLManager.checkErrors {
+                glTexImage3D(GL_TEXTURE_3D, 0, format.toInternalGLFormat(), width, height, depth, 0, GL_RGBA, GL_UNSIGNED_BYTE, null as ByteBuffer?)
+            }
         }
 
         internalWidth = width
@@ -126,7 +128,9 @@ open class GLTexture3D(format: Format, private var sampler: Sampler) : Comparabl
 
     override fun setImage(width: Int, height: Int, depth: Int, data: Memory, dataFormat: Format, offset: Int, level: Int) {
         tempBind {
-            nglTexImage3D(GL_TEXTURE_3D, level, format.toInternalGLFormat(), width, height, depth, 0, dataFormat.toGLFormat(), dataFormat.toGLType(), data.address)
+            GLManager.checkErrors {
+                nglTexImage3D(GL_TEXTURE_3D, level, format.toInternalGLFormat(), width, height, depth, 0, dataFormat.toGLFormat(), dataFormat.toGLType(), data.address)
+            }
         }
 
         internalWidth = width
@@ -135,7 +139,9 @@ open class GLTexture3D(format: Format, private var sampler: Sampler) : Comparabl
 
     override fun setSubImage(x: Int, y: Int, z: Int, width: Int, height: Int, depth: Int, data: Memory, dataFormat: Format, offset: Int, level: Int) {
         tempBind {
-            nglTexSubImage3D(GL_TEXTURE_3D, level, x, y, z, width, height, depth, dataFormat.toGLFormat(), dataFormat.toGLType(), data.address + offset)
+            GLManager.checkErrors {
+                nglTexSubImage3D(GL_TEXTURE_3D, level, x, y, z, width, height, depth, dataFormat.toGLFormat(), dataFormat.toGLType(), data.address + offset)
+            }
         }
     }
 

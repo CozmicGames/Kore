@@ -14,7 +14,6 @@ import org.lwjgl.glfw.GLFWDropCallback
 import org.lwjgl.glfw.GLFWErrorCallback
 import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL.createCapabilities
-import org.lwjgl.opengl.GL11C
 import org.lwjgl.opengl.GL20C.*
 import org.lwjgl.system.MemoryStack.stackPush
 import org.lwjgl.system.MemoryUtil.memAlloc

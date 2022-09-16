@@ -17,7 +17,7 @@ sealed class Texture(val format: Format) : Comparable<Texture>, Disposable {
         MIRROR
     }
 
-    enum class Format(val isImageFormat: Boolean, val size: Int) {
+    enum class Format(val isImageFormat: Boolean, val size: Int, val isDepthFormat: Boolean = false, val isStencilFormat: Boolean = false) {
         R8_UNSIGNED(true, Memory.SIZEOF_BYTE),
         R8_SIGNED(true, Memory.SIZEOF_BYTE),
         R8_UNORM(true, Memory.SIZEOF_BYTE),
@@ -63,12 +63,12 @@ sealed class Texture(val format: Format) : Comparable<Texture>, Disposable {
         RGBA32_SIGNED(true, 4 * 4 * Memory.SIZEOF_BYTE),
         RGBA32_FLOAT(true, 4 * 4 * Memory.SIZEOF_BYTE),
 
-        DEPTH16(false, 0),
-        DEPTH24(false, 0),
-        DEPTH24STENCIL8(false, 0),
-        DEPTH32(false, 0),
-        DEPTH32F(false, 0),
-        STENCIL8(false, 0)
+        DEPTH16(false, 0, true),
+        DEPTH24(false, 0, true),
+        DEPTH24STENCIL8(false, 0, true, true),
+        DEPTH32(false, 0, true),
+        DEPTH32F(false, 0, true),
+        STENCIL8(false, 0, isStencilFormat = true)
     }
 
     abstract fun setSampler(sampler: Sampler)

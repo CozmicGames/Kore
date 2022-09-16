@@ -125,7 +125,9 @@ open class GLTextureCube(format: Format, private var sampler: Sampler) : Compara
         }
 
         tempBind {
-            glTexImage2D(glDirection, 0, this.format.toInternalGLFormat(), width, height, 0, format.toGLFormat(), format.toGLType(), data.address + offset)
+            GLManager.checkErrors {
+                glTexImage2D(glDirection, 0, this.format.toInternalGLFormat(), width, height, 0, format.toGLFormat(), format.toGLType(), data.address + offset)
+            }
         }
     }
 

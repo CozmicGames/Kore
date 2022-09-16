@@ -2,25 +2,17 @@ package com.cozmicgames.graphics.opengl
 
 import com.cozmicgames.Kore
 import com.cozmicgames.configuration
-import com.cozmicgames.graphics.gpu.Texture
 import com.cozmicgames.log
 import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL43C.*
 
 object GLManager {
-    val caps = GL.getCapabilities()
     val MAX_VERTEX_ATTRIBS = glGetInteger(GL_MAX_VERTEX_ATTRIBS)
 
     var boundVertexBuffer = 0
         private set
 
     var boundIndexBuffer = 0
-        private set
-
-    var boundUniformBuffer = 0
-        private set
-
-    var boundShaderStorageBuffer = 0
         private set
 
     var boundIndirectDrawBuffer = 0
@@ -67,22 +59,6 @@ object GLManager {
 
         glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, handle)
         boundIndexBuffer = handle
-    }
-
-    fun bindUniformBuffer(handle: Int) {
-        if (boundUniformBuffer == handle)
-            return
-
-        glBindBuffer(GL_UNIFORM_BUFFER, handle)
-        boundUniformBuffer = handle
-    }
-
-    fun bindShaderStorageBuffer(handle: Int) {
-        if (boundShaderStorageBuffer == handle)
-            return
-
-        glBindBuffer(GL_SHADER_STORAGE_BUFFER, handle)
-        boundShaderStorageBuffer = handle
     }
 
     fun bindIndirectDrawBuffer(handle: Int) {
@@ -179,7 +155,7 @@ object GLManager {
         if (Kore.configuration.debug) {
             var error = glGetError()
             while (error != GL_NO_ERROR) {
-                Kore.log.error(
+                Kore.log.fail(
                     this::class, "OpenGL Error: ${
                         when (error) {
                             GL_INVALID_ENUM -> "Invalid enum"
