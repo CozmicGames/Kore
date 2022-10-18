@@ -1,31 +1,22 @@
 package com.cozmicgames.input
 
 import com.cozmicgames.utils.concurrency.Lock
+import com.cozmicgames.utils.extensions.element
 import com.cozmicgames.utils.maths.Vector2
 
 typealias GamepadButtonListener = (GamepadButton, Boolean) -> Unit
 typealias GamepadTriggerListener = (Float) -> Unit
 typealias GamepadStickListener = (Float, Float) -> Unit
 
-abstract class Gamepad {
-    abstract val id: String
-    abstract val playerIndex: Int
-    abstract val canVibrate: Boolean
-    abstract val isVibrating: Boolean
+class Gamepad(val id: Int) {
+    val sticks = Array(2) { GamepadStick() }
+    val triggers = Array(2) { GamepadTrigger() }
 
-    val rightStick = Vector2()
-    val leftStick = Vector2()
-    val rightStickLast = Vector2()
-    val leftStickLast = Vector2()
-    val rightStickDelta = Vector2()
-    val leftStickDelta = Vector2()
+    val leftStick by sticks.element(GamepadSticks.LEFT.ordinal)
+    val rightStick by sticks.element(GamepadSticks.RIGHT.ordinal)
 
-    var rightTrigger = 0.0f
-    var leftTrigger = 0.0f
-    var rightTriggerLast = 0.0f
-    var leftTriggerLast = 0.0f
-    var rightTriggerDelta = 0.0f
-    var leftTriggerDelta = 0.0f
+    val leftTrigger by triggers.element(GamepadTriggers.LEFT.ordinal)
+    val rightTrigger by triggers.element(GamepadTriggers.RIGHT.ordinal)
 
     private var isFirstUpdate = true
     private val lock = Lock()
@@ -52,9 +43,9 @@ abstract class Gamepad {
 
     fun isButtonJustUp(button: GamepadButton) = buttonsJustUp[button.ordinal]
 
-    fun isRightTriggerPressed() = rightTrigger > 0.0f
+    fun isLeftTriggerPressed() = leftTrigger.current > 0.0f
 
-    fun isLeftTriggerPressed() = leftTrigger > 0.0f
+    fun isRightTriggerPressed() = rightTrigger.current > 0.0f
 
     fun addButtonListener(listener: GamepadButtonListener) = lock.write {
         buttonListeners += listener
@@ -96,7 +87,10 @@ abstract class Gamepad {
         leftStickListeners -= listener
     }
 
-    fun onButton(button: GamepadButton, down: Boolean) = lock.read {
+    fun onButton(button: GamepadButton, down: Boolean) = lock.write {
+        if (buttons[button.ordinal] == down)
+            return
+
         buttons[button.ordinal] = down
 
         buttonListeners.forEach {
@@ -104,7 +98,7 @@ abstract class Gamepad {
         }
     }
 
-    fun onRightTrigger(amount: Float) = lock.read {
+    fun onRightTrigger(amount: Float) = lock.write {
         rightTriggerInternal = amount
 
         rightTriggerListeners.forEach {
@@ -112,7 +106,7 @@ abstract class Gamepad {
         }
     }
 
-    fun onLeftTrigger(amount: Float) = lock.read {
+    fun onLeftTrigger(amount: Float) = lock.write {
         leftTriggerInternal = amount
 
         leftTriggerListeners.forEach {
@@ -120,7 +114,7 @@ abstract class Gamepad {
         }
     }
 
-    fun onRightStick(x: Float, y: Float) = lock.read {
+    fun onRightStick(x: Float, y: Float) = lock.write {
         rightStickInternal.set(x, y)
 
         rightStickListeners.forEach {
@@ -128,7 +122,7 @@ abstract class Gamepad {
         }
     }
 
-    fun onLeftStick(x: Float, y: Float) = lock.read {
+    fun onLeftStick(x: Float, y: Float) = lock.write {
         leftStickInternal.set(x, y)
 
         leftStickListeners.forEach {
@@ -136,12 +130,12 @@ abstract class Gamepad {
         }
     }
 
-    fun update() {
+    fun update() = lock.write {
         if (!isFirstUpdate) {
-            rightTriggerDelta = rightTrigger - rightTriggerLast
-            leftTriggerDelta = leftTrigger - leftTriggerLast
-            rightStickDelta.set(rightStick).sub(rightStickLast)
-            leftStickDelta.set(leftStick).sub(leftStickLast)
+            leftTrigger.delta = leftTrigger.current - leftTrigger.last
+            rightTrigger.delta = rightTrigger.current - rightTrigger.last
+            leftStick.delta.set(leftStick.current).sub(leftStick.last)
+            rightStick.delta.set(rightStick.current).sub(rightStick.last)
         } else
             isFirstUpdate = false
 
@@ -151,18 +145,14 @@ abstract class Gamepad {
             buttonStates[it] = buttons[it]
         }
 
-        rightTriggerLast = rightTrigger
-        leftTriggerLast = leftTrigger
-        rightStickLast.set(rightStick)
-        leftStickLast.set(leftStick)
+        rightTrigger.last = rightTrigger.current
+        leftTrigger.last = leftTrigger.current
+        rightStick.last.set(rightStick.current)
+        leftStick.last.set(leftStick.current)
 
-        rightTrigger = rightTriggerInternal
-        leftTrigger = leftTriggerInternal
-        rightStick.set(rightStickInternal)
-        leftStick.set(leftStickInternal)
+        leftTrigger.current = leftTriggerInternal
+        rightTrigger.current = rightTriggerInternal
+        leftStick.current.set(leftStickInternal)
+        rightStick.current.set(rightStickInternal)
     }
-
-    abstract fun vibrate(duration: Double, strengthLeft: Float, strengthRight: Float)
 }
-
-fun Gamepad.vibrate(duration: Double, strength: Float) = vibrate(duration, strength, strength)

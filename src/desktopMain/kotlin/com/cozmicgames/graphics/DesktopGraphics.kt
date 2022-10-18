@@ -6,6 +6,7 @@ import com.cozmicgames.graphics.gpu.*
 import com.cozmicgames.graphics.opengl.gl32.GL32GraphicsImpl
 import com.cozmicgames.graphics.opengl.gl43.GL43GraphicsImpl
 import com.cozmicgames.input.DesktopInput
+import com.cozmicgames.input.InputEventQueue
 import com.cozmicgames.utils.Color
 import com.cozmicgames.utils.Disposable
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
@@ -27,6 +28,8 @@ import javax.imageio.ImageIO
 
 class DesktopGraphics : Graphics, Disposable {
     private val errorCallback: GLFWErrorCallback
+
+    internal val inputEventQueue = InputEventQueue()
 
     internal var window = 0L
 
@@ -298,22 +301,35 @@ class DesktopGraphics : Graphics, Disposable {
             buffers.forEach { memFree(it) }
         }
 
-        val i = (Kore.input as DesktopInput)
-
         glfwSetKeyCallback(window) { _, key, _, action, _ ->
-            i.onKeyAction(key, action != GLFW_RELEASE)
+            val down = action != GLFW_RELEASE
+            if (down)
+                inputEventQueue.onKeyDown(requireNotNull((Kore.input as DesktopInput).getKeyFromCode(key)), glfwGetTime())
+            else
+                inputEventQueue.onKeyUp(requireNotNull((Kore.input as DesktopInput).getKeyFromCode(key)), glfwGetTime())
         }
 
         glfwSetCharCallback(window) { _, code ->
-            i.onCharAction(code.toChar())
+            inputEventQueue.onChar(code.toChar(), glfwGetTime())
         }
 
         glfwSetMouseButtonCallback(window) { _, button, action, _ ->
-            i.onMouseButtonAction(button, action == GLFW_PRESS)
+            val down = action == GLFW_PRESS
+            if (down)
+                inputEventQueue.onTouchDown(Kore.input.x, Kore.input.y, 0, requireNotNull((Kore.input as DesktopInput).getMouseButtonFromCode(button)), glfwGetTime())
+            else
+                inputEventQueue.onTouchUp(Kore.input.x, Kore.input.y, 0, requireNotNull((Kore.input as DesktopInput).getMouseButtonFromCode(button)), glfwGetTime())
         }
 
         glfwSetScrollCallback(window) { _, x, y ->
-            i.onScrollAction(x.toFloat(), y.toFloat())
+            inputEventQueue.onScroll(x.toFloat(), y.toFloat(), glfwGetTime())
+        }
+
+        glfwSetJoystickCallback { id, event ->
+            when (event) {
+                GLFW_CONNECTED -> inputEventQueue.onGamepadConnected(id, glfwGetTime())
+                GLFW_DISCONNECTED -> inputEventQueue.onGamepadDisconnected(id, glfwGetTime())
+            }
         }
 
         glfwSetDropCallback(window) { _, count, names ->

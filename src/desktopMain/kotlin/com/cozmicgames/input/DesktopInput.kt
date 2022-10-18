@@ -5,23 +5,18 @@ import com.cozmicgames.graphics
 import com.cozmicgames.graphics.DesktopGraphics
 import com.cozmicgames.utils.Disposable
 import com.cozmicgames.utils.Updateable
-import net.java.games.input.Controller
-import net.java.games.input.ControllerEnvironment
 import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFWGamepadState
 import org.lwjgl.system.MemoryStack.stackPush
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
 
-class DesktopInput : Input, Updateable, Disposable {
+class DesktopInput : InputProcessor, Input, Updateable, Disposable {
     private val lock = ReentrantReadWriteLock()
-
-    private val keyListeners = arrayListOf<KeyListener>()
-    private val mouseButtonListeners = arrayListOf<MouseButtonListener>()
-    private val touchListeners = arrayListOf<TouchListener>()
-    private val scrollListeners = arrayListOf<ScrollListener>()
-    private val charListeners = arrayListOf<CharListener>()
-    private val gamepadListeners = hashMapOf<GamepadListener, WrappedGamepadListener>()
+    private val gamepadState = GLFWGamepadState.calloc()
+    private val listeners = arrayListOf<InputListener>()
+    private val workingGamepads = arrayListOf<Gamepad>()
 
     private var keys = BooleanArray(Keys.values().size) { false }
     private var keyStates = BooleanArray(Keys.values().size) { false }
@@ -87,92 +82,91 @@ class DesktopInput : Input, Updateable, Disposable {
             glfwSetInputMode((Kore.graphics as DesktopGraphics).window, GLFW_CURSOR, if (value) GLFW_CURSOR_DISABLED else GLFW_CURSOR_NORMAL)
         }
 
-    private val controllerEnvironment = ControllerEnvironment.getDefaultEnvironment()
+    override val gamepads = arrayListOf<Gamepad>()
 
-    override val gamepads: List<Gamepad>
-        get() = TODO("Not yet implemented")
+    override fun addListener(listener: InputListener) = lock.write {
+        listeners += listener
+    }
 
-    init {
-        addKeyListener { key: Key, down: Boolean ->
-            lock.write { keys[key.ordinal] = down }
+    override fun removeListener(listener: InputListener) = lock.write {
+        listeners -= listener
+    }
+
+    override fun onKey(key: Key, down: Boolean, time: Double) {
+        keys[key.ordinal] = down
+
+        listeners.forEach {
+            it.onKey(key, down, time)
         }
+    }
 
-        addMouseButtonListener { button, down ->
-            lock.write { buttons[button.ordinal] = down }
+    override fun onTouch(x: Int, y: Int, button: MouseButton, pointer: Int, down: Boolean, time: Double) {
+        buttons[button.ordinal] = down
+
+        listeners.forEach {
+            it.onTouch(x, y, pointer, down, time)
         }
     }
 
-    override fun addKeyListener(listener: KeyListener) {
-        keyListeners += listener
+    override fun onScroll(x: Float, y: Float, time: Double) {
+        listeners.forEach {
+            it.onScroll(x, y, time)
+        }
     }
 
-    override fun addMouseButtonListener(listener: MouseButtonListener) {
-        mouseButtonListeners += listener
+    override fun onChar(char: Char, time: Double) {
+        listeners.forEach {
+            it.onChar(char, time)
+        }
     }
 
-    override fun addTouchListener(listener: TouchListener) {
-        touchListeners += listener
-    }
+    override fun onGamepad(id: Int, isConnected: Boolean, time: Double) {
+        if (isConnected) {
+            var gamepad = gamepads.find { it.id == id }
 
-    override fun addScrollListener(listener: ScrollListener) {
-        scrollListeners += listener
-    }
+            if (gamepad == null) {
+                gamepad = Gamepad(id)
+                gamepads += gamepad
+            }
+        } else
+            gamepads.removeIf { it.id == id }
 
-    override fun addCharListener(listener: CharListener) {
-        charListeners += listener
-    }
-
-    override fun addGamepadListener(listener: GamepadListener) {
-        val wrappedGamepadListener = WrappedGamepadListener(listener)
-        gamepadListeners[listener] = wrappedGamepadListener
-        controllerEnvironment.addControllerListener(wrappedGamepadListener)
-    }
-
-    override fun removeKeyListener(listener: KeyListener) {
-        keyListeners -= listener
-    }
-
-    override fun removeMouseButtonListener(listener: MouseButtonListener) {
-        mouseButtonListeners -= listener
-    }
-
-    override fun removeTouchListener(listener: TouchListener) {
-        touchListeners -= listener
-    }
-
-    override fun removeScrollListener(listener: ScrollListener) {
-        scrollListeners -= listener
-    }
-
-    override fun removeCharListener(listener: CharListener) {
-        charListeners -= listener
-    }
-
-    override fun removeGamepadListener(listener: GamepadListener) {
-        val wrappedGamepadListener = gamepadListeners.remove(listener) ?: return
-        controllerEnvironment.removeControllerListener(wrappedGamepadListener)
-    }
-
-    internal fun onKeyAction(code: Int, down: Boolean) {
-        val key = getKeyFromCode(code) ?: return
-        keyListeners.forEach { it(key, down) }
-    }
-
-    internal fun onMouseButtonAction(code: Int, down: Boolean) {
-        val button = getButtonFromCode(code) ?: return
-        mouseButtonListeners.forEach { it(button, down) }
-        touchListeners.forEach { it(internalX, internalY, 0, down) }
-    }
-
-    internal fun onScrollAction(x: Float, y: Float) {
-        scrollListeners.forEach { it(x, y) }
-    }
-
-    internal fun onCharAction(char: Char) {
-        charListeners.forEach { it(char) }
+        listeners.forEach {
+            it.onGamepad(id, isConnected, time)
+        }
     }
 
     override fun update(delta: Float) = lock.write {
+        (Kore.graphics as DesktopGraphics).inputEventQueue.process(this)
+
+        workingGamepads.clear()
+        workingGamepads.addAll(gamepads)
+
+        workingGamepads.forEach {
+            if (!glfwJoystickPresent(it.id))
+                onGamepad(it.id, false, glfwGetTime())
+            else {
+                glfwGetGamepadState(it.id, gamepadState)
+
+                it.onLeftTrigger(gamepadState.axes(GLFW_GAMEPAD_AXIS_LEFT_TRIGGER))
+                it.onRightTrigger(gamepadState.axes(GLFW_GAMEPAD_AXIS_RIGHT_TRIGGER))
+
+                val leftStickX = gamepadState.axes(GLFW_GAMEPAD_AXIS_LEFT_X)
+                val leftStickY = gamepadState.axes(GLFW_GAMEPAD_AXIS_LEFT_Y)
+
+                val rightStickX = gamepadState.axes(GLFW_GAMEPAD_AXIS_RIGHT_X)
+                val rightStickY = gamepadState.axes(GLFW_GAMEPAD_AXIS_RIGHT_Y)
+
+                it.onLeftStick(leftStickX, leftStickY)
+                it.onRightStick(rightStickX, rightStickY)
+
+                for (index in (0 until GLFW_GAMEPAD_BUTTON_LAST)) {
+                    val down = gamepadState.buttons(index).toInt() == GLFW_PRESS
+                    it.onButton(requireNotNull(getGamepadButtonFromCode(index)), down)
+                }
+            }
+        }
+
         stackPush().use {
             val pX = it.callocDouble(1)
             val pY = it.callocDouble(1)
@@ -225,15 +219,7 @@ class DesktopInput : Input, Updateable, Disposable {
 
     override fun isButtonJustUp(button: MouseButton) = lock.read { buttonsJustUp[button.ordinal] }
 
-    internal fun onControllerAdded(controller: Controller) {
-        TODO()
-    }
-
-    internal fun onControllerRemoved(controller: Controller) {
-        TODO()
-    }
-
-    private fun getKeyFromCode(c: Int) = when (c) {
+    fun getKeyFromCode(c: Int) = when (c) {
         GLFW_KEY_ENTER -> Keys.KEY_ENTER
         GLFW_KEY_BACKSPACE -> Keys.KEY_BACKSPACE
         GLFW_KEY_TAB -> Keys.KEY_TAB
@@ -311,13 +297,33 @@ class DesktopInput : Input, Updateable, Disposable {
         else -> null
     }
 
-    private fun getButtonFromCode(c: Int) = when (c) {
+    fun getMouseButtonFromCode(c: Int) = when (c) {
         GLFW_MOUSE_BUTTON_LEFT -> MouseButtons.LEFT
         GLFW_MOUSE_BUTTON_MIDDLE -> MouseButtons.MIDDLE
         GLFW_MOUSE_BUTTON_RIGHT -> MouseButtons.RIGHT
         else -> null
     }
 
+    private fun getGamepadButtonFromCode(c: Int) = when (c) {
+        GLFW_GAMEPAD_BUTTON_A -> GamepadButtons.A
+        GLFW_GAMEPAD_BUTTON_B -> GamepadButtons.B
+        GLFW_GAMEPAD_BUTTON_X -> GamepadButtons.X
+        GLFW_GAMEPAD_BUTTON_Y -> GamepadButtons.Y
+        GLFW_GAMEPAD_BUTTON_LEFT_BUMPER -> GamepadButtons.LEFT_BUMPER
+        GLFW_GAMEPAD_BUTTON_RIGHT_BUMPER -> GamepadButtons.RIGHT_BUMPER
+        GLFW_GAMEPAD_BUTTON_BACK -> GamepadButtons.BACK
+        GLFW_GAMEPAD_BUTTON_START -> GamepadButtons.START
+        GLFW_GAMEPAD_BUTTON_GUIDE -> GamepadButtons.GUIDE
+        GLFW_GAMEPAD_BUTTON_LEFT_THUMB -> GamepadButtons.LEFT_THUMB
+        GLFW_GAMEPAD_BUTTON_RIGHT_THUMB -> GamepadButtons.RIGHT_THUMB
+        GLFW_GAMEPAD_BUTTON_DPAD_UP -> GamepadButtons.DPAD_UP
+        GLFW_GAMEPAD_BUTTON_DPAD_RIGHT -> GamepadButtons.DPAD_RIGHT
+        GLFW_GAMEPAD_BUTTON_DPAD_DOWN -> GamepadButtons.DPAD_DOWN
+        GLFW_GAMEPAD_BUTTON_DPAD_LEFT -> GamepadButtons.DPAD_LEFT
+        else -> null
+    }
+
     override fun dispose() {
+        gamepadState.free()
     }
 }
