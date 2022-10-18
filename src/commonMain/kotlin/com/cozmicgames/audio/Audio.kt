@@ -13,6 +13,11 @@ import com.cozmicgames.utils.use
  */
 interface Audio : Disposable {
     /**
+     * The current listener.
+     */
+    var listener: AudioListener
+
+    /**
      * The supported audio formats
      */
     val supportedSoundFormats: Iterable<String>

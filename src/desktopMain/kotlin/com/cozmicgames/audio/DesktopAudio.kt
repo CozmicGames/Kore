@@ -9,7 +9,6 @@ import com.cozmicgames.utils.Disposable
 import com.cozmicgames.utils.Updateable
 import com.cozmicgames.utils.collections.DynamicStack
 import com.cozmicgames.utils.collections.Pool
-import com.cozmicgames.utils.collections.Stack
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.AL10.*
 import org.lwjgl.openal.ALC
@@ -79,6 +78,8 @@ class DesktopAudio : Audio, Updateable, Disposable {
     private val buffers = arrayListOf<Buffer>()
     private val freeBuffers = DynamicStack<Int>()
 
+    override var listener = AudioListener()
+
     override val supportedSoundFormats = arrayOf("wav").asIterable()
 
     init {
@@ -103,15 +104,8 @@ class DesktopAudio : Audio, Updateable, Disposable {
                 noDevice = true
             }
 
-            if (!noDevice) {
+            if (!noDevice)
                 AL.createCapabilities(deviceCapabilities)
-
-                stackPush().use {
-                    alListenerfv(AL_ORIENTATION, it.floats(0.0f, 0.0f, 0.0f, 0.0f, -1.0f, 0.0f))
-                    alListenerfv(AL_VELOCITY, it.floats(0.0f, 0.0f, 0.0f))
-                    alListenerfv(AL_POSITION, it.floats(0.0f, 0.0f, 0.0f))
-                }
-            }
         }
     }
 
@@ -153,6 +147,12 @@ class DesktopAudio : Audio, Updateable, Disposable {
     override fun update(delta: Float) {
         if (noDevice)
             return
+
+        stackPush().use {
+            alListenerfv(AL_POSITION, it.floats(listener.position.x, listener.position.y, listener.position.z))
+            alListenerfv(AL_ORIENTATION, it.floats(listener.direction.x, listener.direction.y, listener.direction.z, listener.up.x, listener.up.y, listener.up.z))
+            alListenerfv(AL_VELOCITY, it.floats(listener.velocity.x, listener.velocity.y, listener.velocity.z))
+        }
 
         with(activeSources.iterator()) {
             while (hasNext()) {
