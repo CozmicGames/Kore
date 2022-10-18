@@ -44,7 +44,7 @@ Easy access to input events is provided for:
 * Touch input
 * Mouse input
 * Keyboard input (both key stroke and typing)
-* Gamepad input (not yet finished)
+* Gamepad input (not yet tested)
 
 The current input state is also provided to access.
 
