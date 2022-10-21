@@ -1,6 +1,7 @@
 package com.cozmicgames.audio
 
 import com.cozmicgames.Kore
+import com.cozmicgames.audio.formats.MP3
 import com.cozmicgames.audio.formats.WAV
 import com.cozmicgames.files.DesktopReadStream
 import com.cozmicgames.files.ReadStream
@@ -80,7 +81,7 @@ class DesktopAudio : Audio, Updateable, Disposable {
 
     override var listener = AudioListener()
 
-    override val supportedSoundFormats = arrayOf("wav").asIterable()
+    override val supportedSoundFormats = arrayOf("wav", "mp3").asIterable()
 
     init {
         device = alcOpenDevice(null as ByteBuffer?)
@@ -118,30 +119,35 @@ class DesktopAudio : Audio, Updateable, Disposable {
             return null
         }
 
-        if (format.lowercase() == "wav")
-            WAV.createStream((stream as DesktopReadStream).stream).use {
-                val sampleFormat = when (it.sampleSize) {
-                    8 -> when (it.channels) {
-                        1 -> AL_FORMAT_MONO8
-                        2 -> AL_FORMAT_STEREO8
-                        else -> return null
-                    }
-                    16 -> when (it.channels) {
-                        1 -> AL_FORMAT_MONO16
-                        2 -> AL_FORMAT_STEREO16
-                        else -> return null
-                    }
+        val audioStream = when (format.lowercase()) {
+            "wav" -> WAV.createStream((stream as DesktopReadStream).stream)
+            "mp3" -> MP3.createStream((stream as DesktopReadStream).stream)
+            else -> {
+                Kore.log.error(this::class, "Unable to read audio data")
+                return null
+            }
+        }
+
+        audioStream.use {
+            val sampleFormat = when (it.sampleSize) {
+                8 -> when (it.channels) {
+                    1 -> AL_FORMAT_MONO8
+                    2 -> AL_FORMAT_STEREO8
                     else -> return null
                 }
-
-                val data = ByteArray(it.remaining)
-                val count = it.read(data)
-
-                return DesktopSound(registerSoundData(data, count, it.isBigEndian, sampleFormat, it.sampleRate))
+                16 -> when (it.channels) {
+                    1 -> AL_FORMAT_MONO16
+                    2 -> AL_FORMAT_STEREO16
+                    else -> return null
+                }
+                else -> return null
             }
 
-        Kore.log.error(this::class, "Unable to read audio data")
-        return null
+            val data = ByteArray(it.remaining)
+            val count = it.read(data)
+
+            return DesktopSound(registerSoundData(data, count, it.isBigEndian, sampleFormat, it.sampleRate))
+        }
     }
 
     override fun update(delta: Float) {

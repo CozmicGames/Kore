@@ -56,8 +56,7 @@ kotlin {
                     }
                 }
 
-                implementation("net.java.jinput:jinput:2.0.9")
-                implementation("net.java.jinput:jinput:2.0.9:natives-all")
+                implementation("fr.delthas:javamp3:1.0.1")
             }
         }
         val webMain by getting
