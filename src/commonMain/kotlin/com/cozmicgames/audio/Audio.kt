@@ -14,6 +14,7 @@ import com.cozmicgames.utils.use
 interface Audio : Disposable {
     /**
      * The current listener.
+     * Defaults to a listener positioned at [0, 0, 0], facing the positive z-direction.
      */
     var listener: AudioListener
 
