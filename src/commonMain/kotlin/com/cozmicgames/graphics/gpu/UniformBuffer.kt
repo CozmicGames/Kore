@@ -6,7 +6,7 @@ import com.cozmicgames.memory.Memory
 import com.cozmicgames.memory.Struct
 import com.cozmicgames.utils.maths.*
 
-class UniformBuffer(isStackAllocated: Boolean = false) : Struct(isStackAllocated) {
+abstract class UniformBuffer(isStackAllocated: Boolean = false) : Struct(isStackAllocated) {
     enum class Layout {
         STD140,
         STD430,
