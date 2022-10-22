@@ -1,83 +1,30 @@
 package com.cozmicgames.audio
 
-import com.cozmicgames.Kore
+import com.cozmicgames.*
 import com.cozmicgames.audio.formats.MP3
 import com.cozmicgames.audio.formats.WAV
 import com.cozmicgames.files.DesktopReadStream
 import com.cozmicgames.files.ReadStream
-import com.cozmicgames.log
 import com.cozmicgames.utils.Disposable
 import com.cozmicgames.utils.Updateable
-import com.cozmicgames.utils.collections.DynamicStack
 import com.cozmicgames.utils.collections.Pool
 import org.lwjgl.openal.AL
 import org.lwjgl.openal.AL10.*
 import org.lwjgl.openal.ALC
 import org.lwjgl.openal.ALC10.*
 import org.lwjgl.system.MemoryStack.stackPush
-import org.lwjgl.system.MemoryUtil.memAlloc
-import org.lwjgl.system.MemoryUtil.memFree
 import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import java.nio.IntBuffer
 
 class DesktopAudio : Audio, Updateable, Disposable {
-    private class Source : Disposable {
-        val handle: Int
-        val state get() = alGetSourcei(handle, AL_SOURCE_STATE)
-
-        init {
-            val handle = alGenSources()
-            this.handle = if (alGetError() == AL_NO_ERROR)
-                handle
-            else
-                -1
-        }
-
-        override fun dispose() {
-            if (handle != -1)
-                alDeleteSources(handle)
-        }
-    }
-
-    private class Buffer : Disposable {
-        val handle = alGenBuffers()
-
-        fun setData(data: ByteArray, count: Int, isBigEndian: Boolean, format: Int, sampleRate: Int) {
-            val buffer = memAlloc(count)
-            val srcBuffer = ByteBuffer.wrap(data, 0, count)
-            srcBuffer.order(if (isBigEndian) ByteOrder.BIG_ENDIAN else ByteOrder.LITTLE_ENDIAN)
-
-            if (format == AL_FORMAT_MONO16 || format == AL_FORMAT_STEREO16) {
-                val bufferShort = buffer.asShortBuffer()
-                val srcBufferShort = srcBuffer.asShortBuffer()
-
-                while (srcBufferShort.hasRemaining())
-                    bufferShort.put(srcBufferShort.get())
-            } else {
-                while (srcBuffer.hasRemaining())
-                    buffer.put(srcBuffer.get())
-            }
-
-            buffer.position(0)
-            alBufferData(handle, format, buffer, sampleRate)
-            memFree(buffer)
-        }
-
-        override fun dispose() {
-            alDeleteBuffers(handle)
-        }
-    }
-
     var noDevice = false
         private set
 
     private var device = 0L
     private var context = 0L
-    private val sources = Pool(supplier = { Source() })
-    private val activeSources = arrayListOf<Source>()
-    private val buffers = arrayListOf<Buffer>()
-    private val freeBuffers = DynamicStack<Int>()
+    private val sources = Pool(supplier = { AudioSource() })
+    private val activeSources = arrayListOf<AudioSource>()
+    private val buffers = Pool(supplier = { AudioBuffer() })
 
     override var listener = AudioListener()
 
@@ -128,27 +75,10 @@ class DesktopAudio : Audio, Updateable, Disposable {
             }
         }
 
-        audioStream.use {
-            val sampleFormat = when (it.sampleSize) {
-                8 -> when (it.channels) {
-                    1 -> AL_FORMAT_MONO8
-                    2 -> AL_FORMAT_STEREO8
-                    else -> return null
-                }
-                16 -> when (it.channels) {
-                    1 -> AL_FORMAT_MONO16
-                    2 -> AL_FORMAT_STEREO16
-                    else -> return null
-                }
-                else -> return null
-            }
-
-            val data = ByteArray(it.remaining)
-            val count = it.read(data)
-
-            return DesktopSound(registerSoundData(data, count, it.isBigEndian, sampleFormat, it.sampleRate))
-        }
+        return DesktopSound(LoadedAudioData(audioStream))
+        //return DesktopSound(if (audioStream.remaining >= Kore.configuration.audioStreamThreshold) StreamedAudioData(audioStream) else LoadedAudioData(audioStream))
     }
+
 
     override fun update(delta: Float) {
         if (noDevice)
@@ -164,7 +94,7 @@ class DesktopAudio : Audio, Updateable, Disposable {
             while (hasNext()) {
                 val source = next()
 
-                if (source.state != AL_PLAYING) {
+                if (!source.update()) {
                     remove()
                     sources.free(source)
                 }
@@ -172,7 +102,7 @@ class DesktopAudio : Audio, Updateable, Disposable {
         }
     }
 
-    private fun obtainSource(): Source? {
+    private fun obtainSource(): AudioSource? {
         val source = sources.obtain()
         if (source.handle == -1)
             return null
@@ -181,31 +111,23 @@ class DesktopAudio : Audio, Updateable, Disposable {
         return source
     }
 
-    private fun obtainBufferHandle(): Int {
-        if (!freeBuffers.isEmpty)
-            return freeBuffers.pop()
-
-        val buffer = Buffer()
-        buffers += buffer
-        return buffers.size - 1
+    fun obtainBuffer(): AudioBuffer {
+        return buffers.obtain()
     }
 
-    fun freeBufferHandle(handle: Int) {
-        freeBuffers.push(handle)
-    }
-
-    fun registerSoundData(data: ByteArray, count: Int, isBigEndian: Boolean, format: Int, sampleRate: Int): Int {
-        val buffer = obtainBufferHandle()
-        buffers[buffer].setData(data, count, isBigEndian, format, sampleRate)
-        return buffer
+    fun freeBuffer(buffer: AudioBuffer) {
+        buffers.free(buffer)
     }
 
     override fun play(sound: Sound, volume: Float, loop: Boolean): AudioPlayer {
         val source = obtainSource() ?: return DesktopAudioPlayer(-1, 1.0f)
-        alSourcei(source.handle, AL_BUFFER, buffers[(sound as DesktopSound).buffer].handle)
         alSourcef(source.handle, AL_GAIN, volume)
         alSourcei(source.handle, AL_LOOPING, if (loop) AL_TRUE else AL_FALSE)
+
+        source.setData((sound as DesktopSound).data)
+
         alSourcePlay(source.handle)
+
         return DesktopAudioPlayer(source.handle, volume)
     }
 
@@ -214,9 +136,7 @@ class DesktopAudio : Audio, Updateable, Disposable {
             return
 
         sources.dispose()
-        buffers.forEach {
-            it.dispose()
-        }
+        buffers.dispose()
 
         alcDestroyContext(context)
         alcCloseDevice(device)

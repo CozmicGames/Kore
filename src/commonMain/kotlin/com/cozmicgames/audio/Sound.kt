@@ -2,8 +2,9 @@ package com.cozmicgames.audio
 
 import com.cozmicgames.Kore
 import com.cozmicgames.audio
+import com.cozmicgames.utils.Disposable
 
-interface Sound {
+interface Sound: Disposable {
     /**
      * @see Audio.play
      */

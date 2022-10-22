@@ -14,10 +14,10 @@ import com.cozmicgames.log.Dialogs
 import com.cozmicgames.log.Log
 import com.cozmicgames.memory.DesktopMemoryAccess
 import com.cozmicgames.memory.MemoryAccess
+import com.cozmicgames.memory.megabytes
 import com.cozmicgames.utils.*
 import org.lwjgl.glfw.GLFW.*
 import java.io.File
-import java.io.FileOutputStream
 import java.io.OutputStream
 import java.io.PrintStream
 
@@ -182,6 +182,8 @@ class DesktopPlatform : Platform {
 }
 
 var Configuration.icons by stringArray { emptyArray() }
+
+var Configuration.audioStreamThreshold by int { 10.megabytes }
 
 fun Configuration.readFromFile(file: String) {
     val f = File(file)
