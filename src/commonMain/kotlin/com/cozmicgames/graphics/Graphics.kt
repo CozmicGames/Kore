@@ -2,10 +2,14 @@ package com.cozmicgames.graphics
 
 import com.cozmicgames.Kore
 import com.cozmicgames.files.FileHandle
+import com.cozmicgames.files.readToString
 import com.cozmicgames.graphics
 import com.cozmicgames.graphics.gpu.*
 import com.cozmicgames.graphics.gpu.pipeline.PipelineDefinition
+import com.cozmicgames.graphics.gpu.pipeline.PipelineLibrary
 import com.cozmicgames.memory.Memory
+import com.cozmicgames.utils.Charset
+import com.cozmicgames.utils.Charsets
 import com.cozmicgames.utils.Color
 import com.cozmicgames.utils.extensions.emptyIntArray
 import com.cozmicgames.utils.maths.Rectangle
@@ -504,3 +508,9 @@ val Graphics.defaultTexture3D get() = _defaultTexture3D
  * @see [Graphics.setVertexBuffer]
  */
 fun Graphics.setVertexBuffer(buffer: GraphicsBuffer?, layout: VertexLayout?) = setVertexBuffer(buffer, layout?.indices ?: emptyIntArray())
+
+fun Graphics.addPipelineInclude(name: String, source: () -> String) = PipelineLibrary.addInclude(name, source)
+
+fun Graphics.addPipelineInclude(name: String, source: String) = addPipelineInclude(name) { source }
+
+fun Graphics.addPipelineInclude(file: FileHandle, charset: Charset = Charsets.UTF8) = addPipelineInclude(file.fullPath) { file.readToString(charset) }

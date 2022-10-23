@@ -7,13 +7,13 @@ enum class StageType {
     COMPUTE
 }
 
-sealed class ProgramStage(val type: StageType) {
+sealed class PipelineStage(val type: StageType) {
     abstract val preprocessedSource: String
 }
 
-class VertexSource(val source: String) : ProgramStage(StageType.VERTEX) {
+class VertexSource(val source: String) : PipelineStage(StageType.VERTEX) {
     override val preprocessedSource
-        get() = ProgramLibrary.process(
+        get() = PipelineLibrary.process(
             """
         #define VERTEX
         #include "standard"
@@ -22,9 +22,9 @@ class VertexSource(val source: String) : ProgramStage(StageType.VERTEX) {
         )
 }
 
-class GeometrySource(val source: String) : ProgramStage(StageType.GEOMETRY) {
+class GeometrySource(val source: String) : PipelineStage(StageType.GEOMETRY) {
     override val preprocessedSource
-        get() = ProgramLibrary.process(
+        get() = PipelineLibrary.process(
             """
         #define GEOMETRY
         #include "standard"
@@ -33,9 +33,9 @@ class GeometrySource(val source: String) : ProgramStage(StageType.GEOMETRY) {
         )
 }
 
-class FragmentSource(val source: String) : ProgramStage(StageType.FRAGMENT) {
+class FragmentSource(val source: String) : PipelineStage(StageType.FRAGMENT) {
     override val preprocessedSource
-        get() = ProgramLibrary.process(
+        get() = PipelineLibrary.process(
             """
         #define FRAGMENT
         #include "standard"
@@ -44,9 +44,9 @@ class FragmentSource(val source: String) : ProgramStage(StageType.FRAGMENT) {
         )
 }
 
-class ComputeSource(val source: String) : ProgramStage(StageType.COMPUTE) {
+class ComputeSource(val source: String) : PipelineStage(StageType.COMPUTE) {
     override val preprocessedSource
-        get() = ProgramLibrary.process(
+        get() = PipelineLibrary.process(
             """
         #define COMPUTE
         #include "standard"
@@ -59,13 +59,13 @@ class ProgramSource(vararg val defines: String) {
     val types = arrayListOf<TypeDefinition>()
     val uniforms = arrayListOf<UniformDefinition<*>>()
 
-    private val stages = arrayOfNulls<ProgramStage>(StageType.values().size)
+    private val stages = arrayOfNulls<PipelineStage>(StageType.values().size)
 
-    fun set(stage: ProgramStage) {
+    fun set(stage: PipelineStage) {
         stages[stage.type.ordinal] = stage
     }
 
-    operator fun get(type: StageType): ProgramStage? {
+    operator fun get(type: StageType): PipelineStage? {
         return stages[type.ordinal]
     }
 

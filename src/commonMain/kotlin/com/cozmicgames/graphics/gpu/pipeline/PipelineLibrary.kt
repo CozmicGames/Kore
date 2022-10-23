@@ -1,17 +1,10 @@
 package com.cozmicgames.graphics.gpu.pipeline
 
-import com.cozmicgames.Kore
-import com.cozmicgames.files
-import com.cozmicgames.files.FileHandle
-import com.cozmicgames.files.Files
-import com.cozmicgames.files.readToString
-import com.cozmicgames.utils.Charset
-import com.cozmicgames.utils.Charsets
 import com.cozmicgames.utils.concurrency.concurrentHashMapOf
 import com.cozmicgames.utils.extensions.removeBlankLines
 import com.cozmicgames.utils.extensions.removeComments
 
-object ProgramLibrary {
+object PipelineLibrary {
     private const val STANDARD = """
         #ifndef __STANDARD_SHADER_LIBRARY_INCLUDED
         #define __STANDARD_SHADER_LIBRARY_INCLUDED
@@ -197,10 +190,6 @@ object ProgramLibrary {
 
     fun addInclude(name: String, source: () -> String) {
         includes[name] = source
-    }
-
-    fun addInclude(file: FileHandle, charset: Charset = Charsets.UTF8) {
-        addInclude(file.fullPath) { file.readToString(charset) }
     }
 
     fun getInclude(name: String): String {
