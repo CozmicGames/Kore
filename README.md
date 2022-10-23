@@ -155,7 +155,6 @@ A pipeline definition can be created as such:
 ### Audio
 
 Provides loading WAV and MP3 files and playing sounds.
-Support for streaming audio and more audio formats is planned.
 
 ## Building
 
