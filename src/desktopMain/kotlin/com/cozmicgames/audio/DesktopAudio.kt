@@ -3,8 +3,8 @@ package com.cozmicgames.audio
 import com.cozmicgames.*
 import com.cozmicgames.audio.formats.MP3
 import com.cozmicgames.audio.formats.WAV
-import com.cozmicgames.files.DesktopReadStream
-import com.cozmicgames.files.ReadStream
+import com.cozmicgames.files.FileHandle
+import com.cozmicgames.files.extension
 import com.cozmicgames.utils.Disposable
 import com.cozmicgames.utils.Updateable
 import com.cozmicgames.utils.collections.Pool
@@ -57,26 +57,29 @@ class DesktopAudio : Audio, Updateable, Disposable {
         }
     }
 
-    override fun readSound(stream: ReadStream, format: String): Sound? {
+    override fun readSound(file: FileHandle): Sound? {
         if (noDevice)
             return null
+
+        val format = file.extension.lowercase()
 
         if (format !in supportedSoundFormats) {
             Kore.log.error(this::class, "Unsupported audio format: $format")
             return null
         }
 
-        val audioStream = when (format.lowercase()) {
-            "wav" -> WAV.createStream((stream as DesktopReadStream).stream)
-            "mp3" -> MP3.createStream((stream as DesktopReadStream).stream)
+        val audioStream = when (format) {
+            "wav" -> WAV.createStream(file)
+            "mp3" -> MP3.createStream(file)
             else -> {
                 Kore.log.error(this::class, "Unable to read audio data")
                 return null
             }
         }
 
-        return DesktopSound(LoadedAudioData(audioStream))
-        //return DesktopSound(if (audioStream.remaining >= Kore.configuration.audioStreamThreshold) StreamedAudioData(audioStream) else LoadedAudioData(audioStream))
+        val data = if (audioStream.remaining >= Kore.configuration.audioStreamThreshold) StreamedAudioData(audioStream) else LoadedAudioData(audioStream)
+
+        return DesktopSound(data)
     }
 
 
@@ -120,15 +123,13 @@ class DesktopAudio : Audio, Updateable, Disposable {
     }
 
     override fun play(sound: Sound, volume: Float, loop: Boolean): AudioPlayer {
-        val source = obtainSource() ?: return DesktopAudioPlayer(-1, 1.0f)
-        alSourcef(source.handle, AL_GAIN, volume)
-        alSourcei(source.handle, AL_LOOPING, if (loop) AL_TRUE else AL_FALSE)
+        val source = obtainSource() ?: return DesktopAudioPlayer(null, 1.0f)
 
-        source.setData((sound as DesktopSound).data)
+        source.beginPlaying((sound as DesktopSound).data, volume, loop)
 
         alSourcePlay(source.handle)
 
-        return DesktopAudioPlayer(source.handle, volume)
+        return DesktopAudioPlayer(source, volume)
     }
 
     override fun dispose() {

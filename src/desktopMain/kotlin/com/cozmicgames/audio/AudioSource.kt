@@ -16,10 +16,33 @@ class AudioSource : Disposable {
             -1
     }
 
-    fun setData(data: AudioData) {
+    fun setVolume(volume: Float) {
+        alSourcef(handle, AL_GAIN, volume)
+    }
+
+    fun beginPlaying(data: AudioData, volume: Float, loop: Boolean) {
         this.data = data
 
-        data.begin(this)
+        setVolume(volume)
+
+        data.begin(this, loop)
+    }
+
+    fun stopPlaying() {
+        alSourceStop(handle)
+        data?.end(this)
+    }
+
+    fun stopLooping() {
+        data?.endLooping(this)
+    }
+
+    fun pause() {
+        alSourcePause(handle)
+    }
+
+    fun resume() {
+        alSourcePlay(handle)
     }
 
     fun update(): Boolean {

@@ -1,7 +1,7 @@
 package com.cozmicgames.audio.formats
 
-import java.io.InputStream
+import com.cozmicgames.files.FileHandle
 
 interface AudioFormat {
-    fun createStream(stream: InputStream): AudioStream
+    fun createStream(file: FileHandle): AudioStream
 }

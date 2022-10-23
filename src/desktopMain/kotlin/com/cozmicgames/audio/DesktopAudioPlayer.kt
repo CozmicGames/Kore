@@ -1,22 +1,30 @@
 package com.cozmicgames.audio
 
-import org.lwjgl.openal.AL10.*
+class DesktopAudioPlayer internal constructor(private val source: AudioSource?, volume: Float) : AudioPlayer {
+    override var isPaused = false
+        set(value) {
+            if (field == value)
+                return
 
-class DesktopAudioPlayer internal constructor(private val source: Int, volume: Float) : AudioPlayer {
+            if (value)
+                source?.pause()
+            else
+                source?.resume()
+
+            field = value
+        }
+
     override var volume = volume
         set(value) {
-            if (source != -1)
-                alSourcef(source, AL_GAIN, value)
+            source?.setVolume(volume)
             field = value
         }
 
     override fun stop() {
-        if (source != -1)
-            alSourceStop(source)
+        source?.stopPlaying()
     }
 
     override fun stopLooping() {
-        if (source != -1)
-            alSourcei(source, AL_LOOPING, AL_FALSE)
+        source?.stopLooping()
     }
 }

@@ -1,16 +1,12 @@
 package com.cozmicgames.graphics
 
 import com.cozmicgames.Kore
-import com.cozmicgames.files.ReadStream
-import com.cozmicgames.files.WriteStream
 import com.cozmicgames.files.FileHandle
-import com.cozmicgames.files.extension
 import com.cozmicgames.graphics
 import com.cozmicgames.graphics.gpu.*
 import com.cozmicgames.graphics.gpu.pipeline.PipelineDefinition
 import com.cozmicgames.memory.Memory
 import com.cozmicgames.utils.Color
-import com.cozmicgames.utils.Disposable
 import com.cozmicgames.utils.extensions.emptyIntArray
 import com.cozmicgames.utils.maths.Rectangle
 import com.cozmicgames.utils.use
@@ -113,35 +109,33 @@ interface Graphics {
     val supportedFontFormats: Iterable<String>
 
     /**
-     * Reads an image from the given [ReadStream] in the specified [format].
-     * Returns null if the image could not be loaded.
+     * Reads an image from the given [file].
+     * @see [Graphics.readImage]
      *
-     * @param stream The [ReadStream] to read the image from.
-     * @param format The format of the image.
+     * @param file The file handle to load the image from.
      *
      * @return The loaded image.
      */
-    fun readImage(stream: ReadStream, format: String): Image?
+    fun readImage(file: FileHandle): Image?
 
     /**
-     * Writes an image to the given [WriteStream] in the specified [format].
+     * Writes the given [image] to the given [file].
+     * @see [Graphics.writeImage]
      *
-     * @param stream The [WriteStream] to write the image to.
+     * @param file The file handle to write the image to.
      * @param image The image to write.
-     * @param format The format of the image.
      */
-    fun writeImage(stream: WriteStream, image: Image, format: String)
+    fun writeImage(file: FileHandle, image: Image)
 
     /**
-     * Reads a font from the given [ReadStream] in the specified [format].
-     * Returns null if the font could not be loaded.
+     * Reads a font from the given [file].
+     * @see [Graphics.readFont]
      *
-     * @param stream The [ReadStream] to read the font from.
-     * @param format The format of the font.
+     * @param file The file handle to load the font from.
      *
      * @return The loaded font.
      */
-    fun readFont(stream: ReadStream, format: String): Font?
+    fun readFont(file: FileHandle): Font?
 
     /**
      * This is part of the abstracted graphics API.
@@ -510,39 +504,3 @@ val Graphics.defaultTexture3D get() = _defaultTexture3D
  * @see [Graphics.setVertexBuffer]
  */
 fun Graphics.setVertexBuffer(buffer: GraphicsBuffer?, layout: VertexLayout?) = setVertexBuffer(buffer, layout?.indices ?: emptyIntArray())
-
-/**
- * Loads an image from the given [file].
- * @see [Graphics.readImage]
- *
- * @param file The file handle to load the image from.
- *
- * @return The loaded image.
- */
-fun Graphics.loadImage(file: FileHandle) = file.read().use {
-    readImage(it, file.extension)
-}
-
-/**
- * Writes the given [image] to the given [file].
- * @see [Graphics.writeImage]
- *
- * @param file The file handle to write the image to.
- * @param image The image to write.
- */
-fun Graphics.saveImage(file: FileHandle, image: Image) = file.write(false).use {
-    writeImage(it, image, file.extension)
-}
-
-/**
- * Loads a font from the given [file].
- * @see [Graphics.readFont]
- *
- * @param file The file handle to load the font from.
- *
- * @return The loaded font.
- */
-fun Graphics.loadFont(file: FileHandle) = file.read().use {
-    readFont(it, file.extension)
-}
-

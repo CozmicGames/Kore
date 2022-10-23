@@ -9,6 +9,7 @@ import com.cozmicgames.input.DesktopInput
 import com.cozmicgames.input.InputEventQueue
 import com.cozmicgames.utils.Color
 import com.cozmicgames.utils.Disposable
+import com.cozmicgames.utils.use
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWDropCallback
@@ -133,17 +134,19 @@ class DesktopGraphics : Graphics, Disposable {
         impl.endFrame()
     }
 
-    override fun readImage(stream: ReadStream, format: String): Image? {
-        if (format !in supportedImageFormats) {
-            Kore.log.error(this::class, "Unsupported image format: $format")
+    override fun readImage(file: FileHandle): Image? {
+        if (file.extension.lowercase() !in supportedImageFormats) {
+            Kore.log.error(this::class, "Unsupported image format: $file.extension")
             return null
         }
 
-        val bufferedImage = try {
-            ImageIO.read((stream as DesktopReadStream).stream)
-        } catch (e: Exception) {
-            Kore.log.error(this::class, "Unable to read image data")
-            return null
+        val bufferedImage = file.read().use {
+            try {
+                ImageIO.read((it as DesktopReadStream).stream)
+            } catch (e: Exception) {
+                Kore.log.error(this::class, "Unable to read image data")
+                return null
+            }
         }
 
         val image = Image(bufferedImage.width, bufferedImage.height)
@@ -164,9 +167,11 @@ class DesktopGraphics : Graphics, Disposable {
         return image
     }
 
-    override fun writeImage(stream: WriteStream, image: Image, format: String) {
+    override fun writeImage(file: FileHandle, image: Image) {
+        val format = file.extension.lowercase()
+
         if (format !in supportedImageFormats) {
-            Kore.log.error(this::class, "Unsupported image format: $format")
+            Kore.log.error(this::class, "Unsupported image format: ${file.extension}")
             return
         }
 
@@ -184,22 +189,32 @@ class DesktopGraphics : Graphics, Disposable {
             }
         }
 
+        val stream = file.write(false)
+
         val wrappedOutputStream = object : OutputStream() {
             override fun write(b: Int) {
                 stream.writeByte((b and 0xFF).toByte())
             }
         }
 
-        ImageIO.write(bufferedImage, format, wrappedOutputStream)
+        try {
+            ImageIO.write(bufferedImage, format, wrappedOutputStream)
+        } finally {
+            wrappedOutputStream.close()
+            stream.dispose()
+        }
     }
 
-    override fun readFont(stream: ReadStream, format: String): Font? {
-        if (format !in supportedFontFormats) {
-            Kore.log.error(this::class, "Unsupported font format: $format")
+    override fun readFont(file: FileHandle): Font? {
+        if (file.extension.lowercase() !in supportedFontFormats) {
+            Kore.log.error(this::class, "Unsupported font format: ${file.extension}")
             return null
         }
 
-        val awtFont = java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, (stream as DesktopReadStream).stream)
+        val awtFont = file.read().use {
+            java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, (it as DesktopReadStream).stream)
+        }
+
         if (awtFont == null) {
             Kore.log.error(this::class, "Unable to read font data")
             return null
@@ -284,7 +299,7 @@ class DesktopGraphics : Graphics, Disposable {
             repeat(iconPaths.size) {
                 val file = DesktopAssetFileHandle(iconPaths[it])
                 if (file.exists)
-                    loadImage(file)?.let { image ->
+                    readImage(file)?.let { image ->
                         images[it].width(image.width)
                         images[it].height(image.height)
                         val data = image.pixels.toByteArray()
