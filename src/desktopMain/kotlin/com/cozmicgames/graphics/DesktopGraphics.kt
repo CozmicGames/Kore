@@ -318,10 +318,13 @@ class DesktopGraphics : Graphics, Disposable {
 
         glfwSetKeyCallback(window) { _, key, _, action, _ ->
             val down = action != GLFW_RELEASE
-            if (down)
-                inputEventQueue.onKeyDown(requireNotNull((Kore.input as DesktopInput).getKeyFromCode(key)), glfwGetTime())
-            else
-                inputEventQueue.onKeyUp(requireNotNull((Kore.input as DesktopInput).getKeyFromCode(key)), glfwGetTime())
+
+            (Kore.input as DesktopInput).getKeyFromCode(key)?.let {
+                if (down)
+                    inputEventQueue.onKeyDown(it, glfwGetTime())
+                else
+                    inputEventQueue.onKeyUp(it, glfwGetTime())
+            }
         }
 
         glfwSetCharCallback(window) { _, code ->
@@ -330,10 +333,13 @@ class DesktopGraphics : Graphics, Disposable {
 
         glfwSetMouseButtonCallback(window) { _, button, action, _ ->
             val down = action == GLFW_PRESS
-            if (down)
-                inputEventQueue.onTouchDown(Kore.input.x, Kore.input.y, 0, requireNotNull((Kore.input as DesktopInput).getMouseButtonFromCode(button)), glfwGetTime())
-            else
-                inputEventQueue.onTouchUp(Kore.input.x, Kore.input.y, 0, requireNotNull((Kore.input as DesktopInput).getMouseButtonFromCode(button)), glfwGetTime())
+
+            (Kore.input as DesktopInput).getMouseButtonFromCode(button)?.let {
+                if (down)
+                    inputEventQueue.onTouchDown(Kore.input.x, Kore.input.y, 0, it, glfwGetTime())
+                else
+                    inputEventQueue.onTouchUp(Kore.input.x, Kore.input.y, 0, it, glfwGetTime())
+            }
         }
 
         glfwSetScrollCallback(window) { _, x, y ->
