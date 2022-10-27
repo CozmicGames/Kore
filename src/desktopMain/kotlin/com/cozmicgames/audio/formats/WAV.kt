@@ -2,31 +2,52 @@ package com.cozmicgames.audio.formats
 
 import com.cozmicgames.files.DesktopReadStream
 import com.cozmicgames.files.FileHandle
+import com.cozmicgames.utils.use
 import javax.sound.sampled.AudioSystem
 
 object WAV : AudioFormat {
-    class WAVAudioStream(private val file: FileHandle) : AudioStream {
-        private var audioInputStream = AudioSystem.getAudioInputStream((file.read() as DesktopReadStream).stream)
+    class WAVAudioFile(private val file: FileHandle) : AudioFile {
+        override var sampleSize = 0
+        override var channels = 0
+        override var sampleRate = 0
+        override var isBigEndian = false
+        override var size = 0
 
-        override val sampleSize = audioInputStream.format.sampleSizeInBits
-        override val channels = audioInputStream.format.channels
-        override val sampleRate = audioInputStream.format.sampleRate.toInt()
-        override val isBigEndian = audioInputStream.format.isBigEndian
-        override val remaining get() = audioInputStream.available()
-
-        override fun read(buffer: ByteArray): Int {
-            return audioInputStream.read(buffer)
+        init {
+            file.read().use {
+                val fileFormat = AudioSystem.getAudioFileFormat((it as DesktopReadStream).stream)
+                sampleSize = fileFormat.format.sampleSizeInBits
+                channels = fileFormat.format.channels
+                sampleRate = fileFormat.format.sampleRate.toInt()
+                isBigEndian = fileFormat.format.isBigEndian
+                size = fileFormat.byteLength
+            }
         }
 
-        override fun reset() {
-            audioInputStream.close()
-            audioInputStream = AudioSystem.getAudioInputStream((file.read() as DesktopReadStream).stream)
+        override fun readFully(buffer: ByteArray): Int {
+            file.read().use {
+                val audioInputStream = AudioSystem.getAudioInputStream((it as DesktopReadStream).stream)
+                return audioInputStream.read(buffer)
+            }
         }
 
-        override fun dispose() {
-            audioInputStream.close()
+        override fun openStream() = object : AudioStream {
+            var audioStream = AudioSystem.getAudioInputStream((file.read() as DesktopReadStream).stream)
+
+            override fun read(buffer: ByteArray): Int {
+                return audioStream.read(buffer)
+            }
+
+            override fun reset() {
+                audioStream.close()
+                audioStream = AudioSystem.getAudioInputStream((file.read() as DesktopReadStream).stream)
+            }
+
+            override fun dispose() {
+                audioStream.close()
+            }
         }
     }
 
-    override fun createStream(file: FileHandle) = WAVAudioStream(file)
+    override fun createFile(file: FileHandle) = WAVAudioFile(file)
 }

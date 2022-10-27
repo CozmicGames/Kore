@@ -25,16 +25,19 @@ class AudioSource : Disposable {
 
         setVolume(volume)
 
-        data.begin(this, loop)
+        alSourcei(handle, AL_LOOPING, if (loop) AL_TRUE else AL_FALSE)
+
+        data.begin(this)
+
+        alSourcePlay(handle)
     }
 
     fun stopPlaying() {
         alSourceStop(handle)
-        data?.end(this)
     }
 
     fun stopLooping() {
-        data?.endLooping(this)
+        alSourcei(handle, AL_LOOPING, AL_FALSE)
     }
 
     fun pause() {
@@ -46,17 +49,13 @@ class AudioSource : Disposable {
     }
 
     fun update(): Boolean {
-        if (alGetSourcei(handle, AL_SOURCE_STATE) != AL_PLAYING) {
-            data?.let {
-                it.end(this)
-                if (it.isDisposed)
-                    it.freeBuffers()
-            }
+        data?.update(this)
 
+        if (alGetSourcei(handle, AL_SOURCE_STATE) != AL_PLAYING) {
+            data?.end(this)
             return false
         }
 
-        data?.update(this)
         return true
     }
 

@@ -2,143 +2,131 @@ package com.cozmicgames.audio
 
 import com.cozmicgames.Kore
 import com.cozmicgames.audio
-import com.cozmicgames.audio.formats.AudioStream
+import com.cozmicgames.audio.formats.AudioFile
 import com.cozmicgames.utils.Disposable
-import com.cozmicgames.utils.use
 import org.lwjgl.openal.AL10.*
 
 abstract class AudioData : Disposable {
-    var isDisposed = false
-        private set
-
-    var isPlaying = false
-        protected set
-
-    open fun begin(source: AudioSource, loop: Boolean) {}
+    open fun begin(source: AudioSource) {}
     open fun update(source: AudioSource) {}
     open fun end(source: AudioSource) {}
-
-    open fun endLooping(source: AudioSource) {}
-
-    abstract fun freeBuffers()
-
-    override fun dispose() {
-        if (!isPlaying)
-            freeBuffers()
-
-        isDisposed = true
-    }
 }
 
-class LoadedAudioData(stream: AudioStream) : AudioData() {
+class LoadedAudioData(file: AudioFile) : AudioData() {
     val buffer = (Kore.audio as DesktopAudio).obtainBuffer()
 
     init {
-        stream.use {
-            val data = ByteArray(it.remaining)
-            val count = it.read(data)
-
-            buffer.setData(data, count, it.isBigEndian, it.sampleSize, it.channels, it.sampleRate)
-        }
+        val data = ByteArray(file.size)
+        val count = file.readFully(data)
+        buffer.setData(data, count, file.isBigEndian, file.sampleSize, file.channels, file.sampleRate)
     }
 
-    override fun begin(source: AudioSource, loop: Boolean) {
-        alSourcei(source.handle, AL_LOOPING, if (loop) AL_TRUE else AL_FALSE)
+    override fun begin(source: AudioSource) {
         alSourcei(source.handle, AL_BUFFER, buffer.handle)
-        isPlaying = true
     }
 
     override fun end(source: AudioSource) {
-        isPlaying = false
+        alSourcei(source.handle, AL_BUFFER, AL_NONE)
     }
 
-    override fun endLooping(source: AudioSource) {
-        alSourcei(source.handle, AL_LOOPING, AL_FALSE)
-    }
-
-    override fun freeBuffers() {
+    override fun dispose() {
         (Kore.audio as DesktopAudio).freeBuffer(buffer)
     }
 }
 
-class StreamedAudioData(private val stream: AudioStream) : AudioData() {
+class StreamedAudioData(private val file: AudioFile) : AudioData() {
     companion object {
         private const val TEMP_BUFFER_SIZE = 4096 * 10
     }
 
-    private val buffers = Array(3) { (Kore.audio as DesktopAudio).obtainBuffer() }
+    private inner class Stream(val source: AudioSource) {
+        private val stream = file.openStream()
+        private val buffers = Array(3) { (Kore.audio as DesktopAudio).obtainBuffer() }
+        private val tempBytes = ByteArray(TEMP_BUFFER_SIZE)
 
-    private var isLooping = false
+        private fun fill(buffer: AudioBuffer): Boolean {
+            var length = stream.read(tempBytes)
 
-    private val tempBytes = ByteArray(TEMP_BUFFER_SIZE)
-
-    private fun fill(buffer: AudioBuffer): Boolean {
-        var length = stream.read(tempBytes)
-
-        if (length <= 0) {
-            if (isLooping) {
-                stream.reset()
-                length = stream.read(tempBytes)
-                if (length <= 0)
+            if (length <= 0) {
+                if (alGetSourcei(source.handle, AL_LOOPING) == AL_TRUE) {
+                    stream.reset()
+                    length = stream.read(tempBytes)
+                    if (length <= 0)
+                        return false
+                } else
                     return false
-            } else
-                return false
+            }
+
+            buffer.setData(tempBytes, length, file.isBigEndian, file.sampleSize, file.channels, file.sampleRate)
+
+            return true
         }
 
-        buffer.setData(tempBytes, length, stream.isBigEndian, stream.sampleSize, stream.channels, stream.sampleRate)
+        fun begin() {
+            for (buffer in buffers) {
+                if (!fill(buffer))
+                    continue
 
-        return true
+                alSourceQueueBuffers(source.handle, buffer.handle)
+            }
+        }
+
+        fun update() {
+            var end = false
+            var buffers = alGetSourcei(source.handle, AL_BUFFERS_PROCESSED)
+
+            while (buffers-- > 0) {
+                val bufferHandle = alSourceUnqueueBuffers(source.handle)
+
+                if (bufferHandle == AL_INVALID_VALUE)
+                    end = true
+
+                if (end)
+                    continue
+
+                val buffer = requireNotNull(this.buffers.find { it.handle == bufferHandle })
+
+                if (fill(buffer))
+                    alSourceQueueBuffers(source.handle, bufferHandle)
+                else
+                    end = true
+            }
+
+            if (end)
+                source.stopPlaying()
+        }
+
+        fun end() {
+            var queuedBuffers = alGetSourcei(source.handle, AL_BUFFERS_QUEUED)
+            while (queuedBuffers-- > 0)
+                alSourceUnqueueBuffers(source.handle)
+
+            stream.dispose()
+            buffers.forEach {
+                (Kore.audio as DesktopAudio).freeBuffer(it)
+            }
+
+            streams.removeIf { it.source.handle == source.handle }
+        }
     }
 
-    override fun begin(source: AudioSource, loop: Boolean) {
-        isLooping = loop
+    private val streams = arrayListOf<Stream>()
 
-        buffers.forEach {
-            if (!fill(it))
-                return
-
-            alSourceQueueBuffers(source.handle, it.handle)
-        }
+    override fun begin(source: AudioSource) {
+        val stream = Stream(source)
+        stream.begin()
+        streams += stream
     }
 
     override fun update(source: AudioSource) {
-        var end = false
-        var buffers = alGetSourcei(source.handle, AL_BUFFERS_PROCESSED)
-
-        while (buffers-- > 0) {
-            val bufferHandle = alSourceUnqueueBuffers(source.handle)
-            if (bufferHandle == AL_INVALID_VALUE)
-                break
-
-            if (end)
-                continue
-
-            val buffer = requireNotNull(this.buffers.find { it.handle == bufferHandle })
-
-            if (fill(buffer))
-                alSourceQueueBuffers(source.handle, bufferHandle)
-            else
-                end = true
-        }
+        streams.filter { it.source == source }.forEach { it.update() }
     }
 
     override fun end(source: AudioSource) {
-        alSourcei(source.handle, AL_BUFFER, 0)
-        stream.reset()
-    }
-
-    override fun endLooping(source: AudioSource) {
-        isLooping = false
-    }
-
-    override fun freeBuffers() {
-        buffers.forEach {
-            (Kore.audio as DesktopAudio).freeBuffer(it)
-        }
+        streams.filter { it.source == source }.forEach { it.end() }
     }
 
     override fun dispose() {
-        super.dispose()
-        stream.dispose()
+
     }
 }

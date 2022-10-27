@@ -69,15 +69,15 @@ class DesktopAudio : Audio, Updateable, Disposable {
         }
 
         val audioStream = when (format) {
-            "wav" -> WAV.createStream(file)
-            "mp3" -> MP3.createStream(file)
+            "wav" -> WAV.createFile(file)
+            "mp3" -> MP3.createFile(file)
             else -> {
                 Kore.log.error(this::class, "Unable to read audio data")
                 return null
             }
         }
 
-        val data = if (audioStream.remaining >= Kore.configuration.audioStreamThreshold) StreamedAudioData(audioStream) else LoadedAudioData(audioStream)
+        val data = if (audioStream.size >= Kore.configuration.audioStreamThreshold) StreamedAudioData(audioStream) else LoadedAudioData(audioStream)
 
         return DesktopSound(data)
     }
@@ -124,11 +124,7 @@ class DesktopAudio : Audio, Updateable, Disposable {
 
     override fun play(sound: Sound, volume: Float, loop: Boolean): AudioPlayer {
         val source = obtainSource() ?: return DesktopAudioPlayer(null, 1.0f)
-
         source.beginPlaying((sound as DesktopSound).data, volume, loop)
-
-        alSourcePlay(source.handle)
-
         return DesktopAudioPlayer(source, volume)
     }
 
