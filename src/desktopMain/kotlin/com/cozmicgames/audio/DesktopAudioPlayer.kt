@@ -1,6 +1,6 @@
 package com.cozmicgames.audio
 
-class DesktopAudioPlayer internal constructor(private val source: AudioSource?, volume: Float) : AudioPlayer {
+class DesktopAudioPlayer internal constructor(private val source: AudioDataSource?, volume: Float) : AudioPlayer {
     override var isPaused = false
         set(value) {
             if (field == value)

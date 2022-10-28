@@ -22,11 +22,11 @@ class DesktopAudio : Audio, Updateable, Disposable {
 
     private var device = 0L
     private var context = 0L
-    private val sources = Pool(supplier = { AudioSource() })
-    private val activeSources = arrayListOf<AudioSource>()
+    private val sources = Pool(supplier = { AudioDataSource() })
+    private val activeSources = arrayListOf<AudioDataSource>()
     private val buffers = Pool(supplier = { AudioBuffer() })
 
-    override var listener = AudioListener()
+    override var listener = AudioObject()
 
     override val supportedSoundFormats = arrayOf("wav", "mp3").asIterable()
 
@@ -87,6 +87,8 @@ class DesktopAudio : Audio, Updateable, Disposable {
         if (noDevice)
             return
 
+        listener.update(delta)
+
         stackPush().use {
             alListenerfv(AL_POSITION, it.floats(listener.position.x, listener.position.y, listener.position.z))
             alListenerfv(AL_ORIENTATION, it.floats(listener.direction.x, listener.direction.y, listener.direction.z, listener.up.x, listener.up.y, listener.up.z))
@@ -97,7 +99,7 @@ class DesktopAudio : Audio, Updateable, Disposable {
             while (hasNext()) {
                 val source = next()
 
-                if (!source.update()) {
+                if (!source.update(delta)) {
                     remove()
                     sources.free(source)
                 }
@@ -105,7 +107,7 @@ class DesktopAudio : Audio, Updateable, Disposable {
         }
     }
 
-    private fun obtainSource(): AudioSource? {
+    private fun obtainSource(): AudioDataSource? {
         val source = sources.obtain()
         if (source.handle == -1)
             return null
@@ -122,10 +124,10 @@ class DesktopAudio : Audio, Updateable, Disposable {
         buffers.free(buffer)
     }
 
-    override fun play(sound: Sound, volume: Float, loop: Boolean): AudioPlayer {
-        val source = obtainSource() ?: return DesktopAudioPlayer(null, 1.0f)
-        source.beginPlaying((sound as DesktopSound).data, volume, loop)
-        return DesktopAudioPlayer(source, volume)
+    override fun play(sound: Sound, volume: Float, loop: Boolean, source: AudioObject?): AudioPlayer {
+        val dataSource = obtainSource() ?: return DesktopAudioPlayer(null, 1.0f)
+        dataSource.beginPlaying((sound as DesktopSound).data, volume, loop, source)
+        return DesktopAudioPlayer(dataSource, volume)
     }
 
     override fun dispose() {

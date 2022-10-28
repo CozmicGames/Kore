@@ -10,10 +10,10 @@ import com.cozmicgames.utils.Disposable
  */
 interface Audio : Disposable {
     /**
-     * The current listener.
+     * The current listener [AudioObject].
      * Defaults to a listener positioned at [0, 0, 0], facing the positive z-direction.
      */
-    var listener: AudioListener
+    var listener: AudioObject
 
     /**
      * The supported audio formats
@@ -36,8 +36,9 @@ interface Audio : Disposable {
      * @param sound The sound to play
      * @param volume The volume of the sound
      * @param loop Whether the sound should loop
+     * @param source The source the sound should be played from
      *
      * @return An [AudioPlayer] that can be used to control the sound
      */
-    fun play(sound: Sound, volume: Float, loop: Boolean = false): AudioPlayer
+    fun play(sound: Sound, volume: Float, loop: Boolean = false, source: AudioObject? = null): AudioPlayer
 }

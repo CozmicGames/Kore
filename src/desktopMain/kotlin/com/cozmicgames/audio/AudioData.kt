@@ -7,9 +7,9 @@ import com.cozmicgames.utils.Disposable
 import org.lwjgl.openal.AL10.*
 
 abstract class AudioData : Disposable {
-    open fun begin(source: AudioSource) {}
-    open fun update(source: AudioSource) {}
-    open fun end(source: AudioSource) {}
+    open fun begin(source: AudioDataSource) {}
+    open fun update(source: AudioDataSource) {}
+    open fun end(source: AudioDataSource) {}
 }
 
 class LoadedAudioData(file: AudioFile) : AudioData() {
@@ -21,11 +21,11 @@ class LoadedAudioData(file: AudioFile) : AudioData() {
         buffer.setData(data, count, file.isBigEndian, file.sampleSize, file.channels, file.sampleRate)
     }
 
-    override fun begin(source: AudioSource) {
+    override fun begin(source: AudioDataSource) {
         alSourcei(source.handle, AL_BUFFER, buffer.handle)
     }
 
-    override fun end(source: AudioSource) {
+    override fun end(source: AudioDataSource) {
         alSourcei(source.handle, AL_BUFFER, AL_NONE)
     }
 
@@ -39,7 +39,7 @@ class StreamedAudioData(private val file: AudioFile) : AudioData() {
         private const val TEMP_BUFFER_SIZE = 4096 * 10
     }
 
-    private inner class Stream(val source: AudioSource) {
+    private inner class Stream(val source: AudioDataSource) {
         private val stream = file.openStream()
         private val buffers = Array(3) { (Kore.audio as DesktopAudio).obtainBuffer() }
         private val tempBytes = ByteArray(TEMP_BUFFER_SIZE)
@@ -112,17 +112,17 @@ class StreamedAudioData(private val file: AudioFile) : AudioData() {
 
     private val streams = arrayListOf<Stream>()
 
-    override fun begin(source: AudioSource) {
+    override fun begin(source: AudioDataSource) {
         val stream = Stream(source)
         stream.begin()
         streams += stream
     }
 
-    override fun update(source: AudioSource) {
+    override fun update(source: AudioDataSource) {
         streams.filter { it.source == source }.forEach { it.update() }
     }
 
-    override fun end(source: AudioSource) {
+    override fun end(source: AudioDataSource) {
         streams.filter { it.source == source }.forEach { it.end() }
     }
 
