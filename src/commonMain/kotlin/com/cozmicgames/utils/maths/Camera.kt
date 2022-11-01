@@ -1,5 +1,10 @@
 package com.cozmicgames.utils.maths
 
+import com.cozmicgames.Kore
+import com.cozmicgames.graphics
+import com.cozmicgames.graphics.safeHeight
+import com.cozmicgames.graphics.safeWidth
+
 abstract class Camera {
     open val projection = Matrix4x4()
     open val view = Matrix4x4()
@@ -22,6 +27,18 @@ fun Camera.target(x: Float, y: Float, z: Float) {
     val dy = y - position.y
     val dz = z - position.z
     direction.set(-dx, -dy, -dz).normalize()
+}
+
+fun Camera.unproject(x: Float, y: Float, z: Float = 0.0f, viewportX: Float = Kore.graphics.safeInsetLeft.toFloat(), viewportY: Float = Kore.graphics.safeInsetBottom.toFloat(), viewportWidth: Float = Kore.graphics.safeWidth.toFloat(), viewportHeight: Float = Kore.graphics.safeHeight.toFloat(), dest: Vector3 = Vector3()): Vector3 {
+    val xx = x - viewportX
+    val yy = y - viewportY
+    val nx = 2.0f * xx / viewportWidth - 1.0f
+    val ny = 2.0f * yy / viewportHeight - 1.0f
+    val nz = 2.0f * z - 1.0f
+
+    return inverseProjectionView.project(nx, ny, nz) { px, py, pz ->
+        dest.set(px, py, pz)
+    }
 }
 
 class OrthographicCamera(var width: Int, var height: Int) : Camera() {
