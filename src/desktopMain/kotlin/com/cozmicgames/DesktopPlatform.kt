@@ -185,10 +185,13 @@ var Configuration.icons by stringArray { emptyArray() }
 
 var Configuration.audioStreamThreshold by int { 10.megabytes }
 
-fun Configuration.readFromFile(file: String) {
+fun Configuration.readFromFile(file: String): Boolean {
     val f = File(file)
-    if (f.exists())
+    return if (f.exists()) {
         read(f.readText())
+        true
+    } else
+        false
 }
 
 fun Configuration.writeToFile(file: String) {
