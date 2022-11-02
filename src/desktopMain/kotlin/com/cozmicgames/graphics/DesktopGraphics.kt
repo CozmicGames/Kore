@@ -300,6 +300,7 @@ class DesktopGraphics : Graphics, Disposable {
                 val file = DesktopAssetFileHandle(iconPaths[it])
                 if (file.exists)
                     readImage(file)?.let { image ->
+                        image.flipY()
                         images[it].width(image.width)
                         images[it].height(image.height)
                         val data = image.pixels.toByteArray()
