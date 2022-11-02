@@ -48,22 +48,27 @@ open class Rectangle(var x: Float, var y: Float, var width: Float, var height: F
 
     val area get() = width * height
 
+    val isInfinite get() = width < 0.0f || height < 0.0f
+
     fun infinite() {
-        x = Float.MAX_VALUE
-        y = Float.MAX_VALUE
-        width = -Float.MAX_VALUE
-        height = -Float.MAX_VALUE
+        x = 0.0f
+        y = 0.0f
+        width = -1.0f
+        height = -1.0f
     }
 
-    operator fun contains(point: Vector2) = minX <= point.x && minY <= point.y && maxX >= point.x && maxY >= point.y
+    operator fun contains(point: Vector2) = if (isInfinite) true else minX <= point.x && minY <= point.y && maxX >= point.x && maxY >= point.y
 
-    operator fun contains(rectangle: Rectangle) = minX <= rectangle.minX && minY <= rectangle.minY && maxX >= rectangle.maxX && maxY >= rectangle.maxY
+    operator fun contains(rectangle: Rectangle) = if (isInfinite || rectangle.isInfinite) true else minX <= rectangle.minX && minY <= rectangle.minY && maxX >= rectangle.maxX && maxY >= rectangle.maxY
 
-    infix fun intersects(rectangle: Rectangle) = intersectRectRect(minX, minY, maxX, maxY, rectangle.minX, rectangle.minY, rectangle.maxX, rectangle.maxY)
+    infix fun intersects(rectangle: Rectangle) = if (isInfinite || rectangle.isInfinite) true else intersectRectRect(minX, minY, maxX, maxY, rectangle.minX, rectangle.minY, rectangle.maxX, rectangle.maxY)
 
     fun merge(point: Vector2) = merge(point.x, point.y)
 
-    fun merge(x: Float, y: Float) {
+    fun merge(x: Float, y: Float): Rectangle {
+        if (isInfinite)
+            return this
+
         val minX = min(minX, x)
         val maxX = max(maxX, x)
         width = maxX - minX
@@ -72,9 +77,14 @@ open class Rectangle(var x: Float, var y: Float, var width: Float, var height: F
         val maxY = max(maxY, y)
         height = maxY - minY
         this.y = minY
+
+        return this
     }
 
-    fun merge(rectangle: Rectangle) {
+    fun merge(rectangle: Rectangle): Rectangle {
+        if (isInfinite)
+            return this
+
         val minX = min(minX, rectangle.minX)
         val maxX = max(maxX, rectangle.maxX)
         width = maxX - minX
@@ -83,22 +93,31 @@ open class Rectangle(var x: Float, var y: Float, var width: Float, var height: F
         val maxY = max(maxY, rectangle.maxY)
         height = maxY - minY
         y = minY
+
+        return this
     }
 
-    fun set(rectangle: Rectangle) {
+    fun set(rectangle: Rectangle): Rectangle {
         x = rectangle.x
         y = rectangle.y
         width = rectangle.width
         height = rectangle.height
+
+        return this
     }
 
     fun expand(amount: Float) = expand(amount, amount)
 
-    fun expand(amountX: Float, amountY: Float) {
+    fun expand(amountX: Float, amountY: Float): Rectangle {
+        if (isInfinite)
+            return this
+
         minX -= amountX
         maxX += amountX
         minY -= amountY
         maxY += amountY
+
+        return this
     }
 
     override fun equals(other: Any?): Boolean {
@@ -124,6 +143,6 @@ open class Rectangle(var x: Float, var y: Float, var width: Float, var height: F
     }
 
     override fun toString(): String {
-        return "Rectangle(x=$x, y=$y, width=$width, height=$height)"
+        return if (isInfinite) "Rectangle(infinite)" else "Rectangle(x=$x, y=$y, width=$width, height=$height)"
     }
 }

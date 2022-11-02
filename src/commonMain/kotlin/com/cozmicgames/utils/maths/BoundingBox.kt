@@ -68,22 +68,27 @@ open class BoundingBox(var x: Float, var y: Float, var z: Float, var width: Floa
 
     val volume get() = width * height * depth
 
+    val isInfinite get() = width < 0.0f || height < 0.0f || depth < 0.0f
+
     fun infinite() {
-        x = -Float.MAX_VALUE * 0.5f
-        y = -Float.MAX_VALUE * 0.5f
-        z = -Float.MAX_VALUE * 0.5f
-        width = Float.MAX_VALUE
-        height = Float.MAX_VALUE
-        depth = Float.MAX_VALUE
+        x = 0.0f
+        y = 0.0f
+        z = 0.0f
+        width = -1.0f
+        height = -1.0f
+        depth = -1.0f
     }
 
-    operator fun contains(point: Vector3) = minX <= point.x && minY <= point.y && minZ <= point.z && maxX >= point.x && maxY >= point.y && maxZ >= point.z
+    operator fun contains(point: Vector3) = if (isInfinite) true else minX <= point.x && minY <= point.y && minZ <= point.z && maxX >= point.x && maxY >= point.y && maxZ >= point.z
 
-    operator fun contains(box: BoundingBox) = minX <= box.minX && minY <= box.minY && minZ <= box.minZ && maxX >= box.maxX && maxY >= box.maxY && maxZ >= box.maxZ
+    operator fun contains(box: BoundingBox) = if (isInfinite || box.isInfinite) true else minX <= box.minX && minY <= box.minY && minZ <= box.minZ && maxX >= box.maxX && maxY >= box.maxY && maxZ >= box.maxZ
 
-    infix fun intersects(box: BoundingBox) = intersectAabbAabb(minX, minY, minZ, maxX, maxY, maxZ, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ)
+    infix fun intersects(box: BoundingBox) = if (isInfinite || box.isInfinite) true else intersectAabbAabb(minX, minY, minZ, maxX, maxY, maxZ, box.minX, box.minY, box.minZ, box.maxX, box.maxY, box.maxZ)
 
     fun merge(point: Vector3) {
+        if (isInfinite)
+            return
+
         val minX = min(minX, point.x)
         val maxX = max(maxX, point.x)
         width = maxX - minX
@@ -101,6 +106,9 @@ open class BoundingBox(var x: Float, var y: Float, var z: Float, var width: Floa
     }
 
     fun merge(box: BoundingBox): BoundingBox {
+        if (isInfinite)
+            return this
+
         if (box in this)
             return this
 
@@ -135,6 +143,11 @@ open class BoundingBox(var x: Float, var y: Float, var z: Float, var width: Floa
     fun intersectsRay(origin: Vector3, direction: Vector3, result: Vector2? = null) = intersectsRay(origin.x, origin.y, origin.z, direction.x, direction.y, direction.z, result)
 
     fun intersectsRay(originX: Float, originY: Float, originZ: Float, directionX: Float, directionY: Float, directionZ: Float, result: Vector2? = null): Boolean {
+        if (isInfinite) {
+            result?.set(0.0f, 0.0f)
+            return true
+        }
+
         val invDirX = 1.0f / directionX
         val invDirY = 1.0f / directionY
         val invDirZ = 1.0f / directionZ
@@ -190,13 +203,18 @@ open class BoundingBox(var x: Float, var y: Float, var z: Float, var width: Floa
 
     fun expand(amount: Float) = expand(amount, amount, amount)
 
-    fun expand(amountX: Float, amountY: Float, amountZ: Float) {
+    fun expand(amountX: Float, amountY: Float, amountZ: Float): BoundingBox {
+        if (isInfinite)
+            return this
+
         minX -= amountX
         maxX += amountX
         minY -= amountY
         maxY += amountY
         minZ -= amountZ
         maxZ += amountZ
+
+        return this
     }
 
     override fun equals(other: Any?): Boolean {
@@ -226,6 +244,6 @@ open class BoundingBox(var x: Float, var y: Float, var z: Float, var width: Floa
     }
 
     override fun toString(): String {
-        return "BoundingBox(x=$x, y=$y, z=$z, width=$width, height=$height, depth=$depth)"
+        return if (isInfinite) "BoundingBox(infinite)" else "BoundingBox(x=$x, y=$y, z=$z, width=$width, height=$height, depth=$depth)"
     }
 }
