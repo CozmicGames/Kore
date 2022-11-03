@@ -18,8 +18,7 @@ import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.opengl.GL.createCapabilities
 import org.lwjgl.opengl.GL20C.*
 import org.lwjgl.system.MemoryStack.stackPush
-import org.lwjgl.system.MemoryUtil.memAlloc
-import org.lwjgl.system.MemoryUtil.memFree
+import org.lwjgl.system.MemoryUtil.*
 import org.lwjgl.system.Platform
 import java.awt.image.BufferedImage
 import java.io.OutputStream
@@ -295,7 +294,7 @@ class DesktopGraphics : Graphics, Disposable {
 
         if (iconPaths.isNotEmpty()) {
             val images = GLFWImage.calloc(iconPaths.size)
-            val buffers = arrayListOf<ByteBuffer>()
+            val buffers = arrayListOf<Long>()
             repeat(iconPaths.size) {
                 val file = DesktopAssetFileHandle(iconPaths[it])
                 if (file.exists)
@@ -304,17 +303,20 @@ class DesktopGraphics : Graphics, Disposable {
                         images[it].width(image.width)
                         images[it].height(image.height)
                         val data = image.pixels.toByteArray()
-                        val buffer = memAlloc(data.size)
-                        buffer.put(data)
-                        buffer.flip()
-                        images[it].pixels(buffer)
+                        val buffer = nmemAlloc(data.size.toLong())
+
+                        data.forEachIndexed { index, byte ->
+                            memSet(buffer + index, byte.toInt(), 1)
+                        }
+
+                        images[it].pixels(memByteBuffer(buffer, data.size))
                         buffers += buffer
                     }
             }
 
             glfwSetWindowIcon(window, images)
             images.free()
-            buffers.forEach { memFree(it) }
+            buffers.forEach { nmemFree(it) }
         }
 
         glfwSetKeyCallback(window) { _, key, _, action, _ ->
