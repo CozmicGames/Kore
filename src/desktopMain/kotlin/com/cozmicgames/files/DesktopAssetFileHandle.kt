@@ -62,7 +62,7 @@ class DesktopAssetFileHandle(override val fullPath: String) : FileHandle {
         if (fullPath.isEmpty())
             return DesktopAssetFileHandle(path)
 
-        return DesktopAssetFileHandle(File(fullPath, path).absolutePath)
+        return DesktopAssetFileHandle("$fullPath${Kore.files.separator}$path")
     }
 
     override fun sibling(path: String): FileHandle {
