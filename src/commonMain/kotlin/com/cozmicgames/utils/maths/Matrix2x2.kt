@@ -3,6 +3,7 @@ package com.cozmicgames.utils.maths
 import com.cozmicgames.utils.collections.Resettable
 import com.cozmicgames.utils.extensions.element
 import kotlin.math.abs
+import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -62,6 +63,10 @@ class Matrix2x2 : Resettable {
         m10 = s
         m11 = c
         return this
+    }
+
+    fun getRotation(): Float {
+        return atan2(m10, m00)
     }
 
     fun getAxisX(dest: Vector2 = Vector2()): Vector2 {
