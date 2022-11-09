@@ -1,15 +1,30 @@
 package com.cozmicgames.utils
 
-import com.cozmicgames.utils.extensions.contentHashCode
+import com.cozmicgames.Kore
+import com.cozmicgames.log
 import com.cozmicgames.utils.extensions.enumValueOfOrNull
+import com.cozmicgames.utils.extensions.stringOrNull
 import com.cozmicgames.utils.maths.*
-import kotlin.reflect.KMutableProperty
+import kotlinx.serialization.*
+import kotlinx.serialization.json.*
 import kotlin.reflect.KMutableProperty0
 import kotlin.reflect.KProperty
 
 open class Properties {
+    private companion object {
+        val prettyPrintJson = Json {
+            prettyPrint = true
+            allowSpecialFloatingPointValues = true
+        }
+
+        val normalPrintJson = Json {
+            prettyPrint = false
+            allowSpecialFloatingPointValues = true
+        }
+    }
+
     abstract class Delegate<T>(val defaultValue: () -> T) {
-        var isDefaultSet = false
+        private var isDefaultSet = false
 
         abstract fun get(properties: Properties, name: String): T
 
@@ -39,7 +54,7 @@ open class Properties {
         PROPERTIES
     }
 
-    private data class Value(val name: String, val type: Type, val value: Any, val isArray: Boolean)
+    data class Value(val name: String, val type: Type, val value: Any, val isArray: Boolean)
 
     private val values = hashMapOf<String, Value>()
 
@@ -134,295 +149,352 @@ open class Properties {
         return value.value as? Array<Properties>
     }
 
-    fun write(): String = buildString { write(this) }
+    @Suppress("UNCHECKED_CAST")
+    fun write(prettyPrint: Boolean = true): String {
+        fun writeProperties(properties: Properties, builder: JsonObjectBuilder) {
+            properties.values.forEach { (_, value) ->
+                builder.putJsonObject(value.name) {
+                    put("type", value.type.name)
 
-    fun write(builder: StringBuilder, level: Int = 0) {
-        val indentation = buildString { repeat(level) { append('\t') } }
-
-        values.forEach { (_, value) ->
-            builder.append(indentation)
-            builder.append(value.name)
-            builder.append(":")
-            builder.append(value.type.name.lowercase())
-            builder.append("=")
-
-            if (value.isArray) {
-                val array = value.value as Array<*>
-                when (value.type) {
-                    Type.STRING -> builder.append(array.joinToString("\", \"", "[\"", "\"]"))
-                    Type.PROPERTIES -> {
-                        builder.appendLine("[")
-                        var count = 0
-                        array.forEach {
-                            builder.appendLine("{")
-
-                            (it as Properties).write(builder, level + 1)
-
-                            if (count == array.lastIndex)
-                                builder.appendLine("}")
-                            else
-                                builder.appendLine("},")
-
-                            count++
+                    if (value.isArray) {
+                        when (value.type) {
+                            Type.INT -> {
+                                putJsonArray("array") {
+                                    (value.value as Array<Int>).forEach {
+                                        add(it)
+                                    }
+                                }
+                            }
+                            Type.FLOAT -> {
+                                putJsonArray("array") {
+                                    (value.value as Array<Float>).forEach {
+                                        add(it)
+                                    }
+                                }
+                            }
+                            Type.BOOLEAN -> {
+                                putJsonArray("array") {
+                                    (value.value as Array<Boolean>).forEach {
+                                        add(it)
+                                    }
+                                }
+                            }
+                            Type.STRING -> {
+                                putJsonArray("array") {
+                                    (value.value as Array<String>).forEach {
+                                        add(it)
+                                    }
+                                }
+                            }
+                            Type.PROPERTIES -> {
+                                putJsonArray("array") {
+                                    (value.value as Array<Properties>).forEach {
+                                        addJsonObject {
+                                            writeProperties(it, this)
+                                        }
+                                    }
+                                }
+                            }
                         }
-
-                        builder.append("]")
+                    } else {
+                        when (value.type) {
+                            Type.INT -> put("value", value.value as Int)
+                            Type.FLOAT -> put("value", value.value as Float)
+                            Type.BOOLEAN -> put("value", value.value as Boolean)
+                            Type.STRING -> put("value", value.value as String)
+                            Type.PROPERTIES -> putJsonObject("value") {
+                                writeProperties(value.value as Properties, this)
+                            }
+                        }
                     }
-                    else -> builder.append(array.joinToString(", ", "[", "]"))
-                }
-            } else {
-                when (value.type) {
-                    Type.STRING -> builder.append("\"${value.value}\"")
-                    Type.PROPERTIES -> {
-                        builder.appendLine("{")
-                        (value.value as Properties).write(builder, level + 1)
-                        builder.append(indentation)
-                        builder.append("}")
-                    }
-                    else -> builder.append(value.value.toString())
                 }
             }
-
-            builder.appendLine()
         }
+
+        val obj = buildJsonObject {
+            writeProperties(this@Properties, this)
+        }
+
+        return if (prettyPrint)
+            prettyPrintJson.encodeToString(obj)
+        else
+            normalPrintJson.encodeToString(obj)
     }
 
     fun read(text: String) {
-        val lines = text.lines()
-        var lineIndex = 0
+        fun JsonPrimitive.string() = toString().removeSurrounding("\"")
 
-        while (lineIndex < lines.size) {
-            val line = lines[lineIndex]
+        values.clear()
 
-            if (line.isBlank()) {
-                lineIndex++
-                continue
-            }
+        val element = Json.parseToJsonElement(text)
 
-            val indexOfColon = line.indexOf(":")
-            if (indexOfColon < 0)
-                throw Exception("No ':' found in line '$line' ($lineIndex)")
-
-            val indexOfEquals = line.indexOf("=")
-            if (indexOfEquals < 0)
-                throw Exception("No '=' found in line '$line' ($lineIndex)")
-
-            val name = line.substring(0, indexOfColon).trim()
-            val typeString = line.substring(indexOfColon + 1, indexOfEquals).trim()
-
-            val type = enumValueOfOrNull<Type>(typeString.uppercase()) ?: throw Exception("No value found for '$typeString' ($lineIndex)")
-
-            if (type == Type.PROPERTIES) {
-                when (val indicatorChar = line.substring(indexOfEquals + 1).trim()) {
-                    "{" -> {
-                        val valueString = buildString {
-                            while (true) {
-                                lineIndex++
-
-                                if (lineIndex >= lines.size)
-                                    throw Exception("No closing bracket found for value '$name' ($lineIndex)")
-
-                                val propertiesLine = lines[lineIndex].trim()
-
-                                if (propertiesLine.startsWith("}"))
-                                    break
-
-                                appendLine(propertiesLine)
-                            }
-                        }
-
-                        val properties = Properties()
-                        properties.read(valueString)
-                        setSingleValue(name, Type.PROPERTIES, properties)
-                    }
-                    "[" -> {
-                        val list = arrayListOf<Properties>()
-                        val builder = StringBuilder()
-                        var isProperties = false
-                        var hasProperties = false
-                        lineIndex++
-
-                        while (true) {
-                            if (lineIndex >= lines.size)
-                                throw Exception("No closing array bracket found for value '$name' ($lineIndex)")
-
-                            val propertiesLine = lines[lineIndex].trim()
-
-                            if (propertiesLine.startsWith("}")) {
-                                if (!isProperties)
-                                    throw Exception("No opening bracket found for value '$name' ($lineIndex)")
-
-                                if (builder.isEmpty() && !hasProperties)
-                                    throw Exception("No closing bracket found for value '$name' ($lineIndex)")
-
-                                val properties = Properties()
-                                properties.read(builder.toString())
-                                list += properties
-                                builder.clear()
-                                hasProperties = false
-                                isProperties = false
-
-                                if (!propertiesLine.endsWith(",") || propertiesLine.endsWith("]"))
-                                    break
-                            }
-
-                            if (isProperties)
-                                builder.appendLine(propertiesLine)
-
-                            if (propertiesLine == "{") {
-                                isProperties = !isProperties
-                                hasProperties = true
-                            }
-
-                            if (propertiesLine == "]") {
-                                if (isProperties)
-                                    throw Exception("No closing bracket found for value '$name' ($lineIndex)")
-
-                                break
-                            }
-
-                            lineIndex++
-                        }
-
-                        setArrayValue(name, Type.PROPERTIES, list.toTypedArray())
-                        lineIndex++
-                    }
-                    else -> throw Exception("Unknown indicator for '$name': '$indicatorChar ($lineIndex)")
-                }
-            } else {
-                var valueString = line.substring(indexOfEquals + 1).trim()
-
-                if (valueString.startsWith("[")) {
-                    if (!valueString.endsWith("]"))
-                        throw Exception("Arrays must end with ']' ($lineIndex)")
-
-                    valueString = valueString.removeSurrounding("[", "]")
-
-                    val array = when (type) {
-                        Type.INT -> {
-                            val list = arrayListOf<Int>()
-                            var index = 0
-                            val builder = StringBuilder()
-
-                            while (index < valueString.length) {
-                                val char = valueString[index]
-
-                                if (char != ',')
-                                    builder.append(char)
-
-                                if (char == ',' || (index == valueString.lastIndex) && builder.isNotEmpty()) {
-                                    val value = builder.toString().trim().toIntOrNull() ?: throw Exception("Failed conversion to int: ${builder.toString().trim()} ($lineIndex)")
-
-                                    list += value
-                                    builder.clear()
-                                }
-
-                                index++
-                            }
-
-                            list.toTypedArray()
-                        }
-                        Type.FLOAT -> {
-                            val list = arrayListOf<Float>()
-                            var index = 0
-                            val builder = StringBuilder()
-
-                            while (index < valueString.length) {
-                                val char = valueString[index]
-
-                                if (char != ',')
-                                    builder.append(char)
-
-                                if (char == ',' || (index == valueString.lastIndex) && builder.isNotEmpty()) {
-                                    val value = builder.toString().trim().toFloatOrNull() ?: throw Exception("Failed conversion to float: ${builder.toString().trim()} ($lineIndex)")
-
-                                    list += value
-                                    builder.clear()
-                                }
-
-
-                                index++
-                            }
-
-                            list.toTypedArray()
-                        }
-                        Type.BOOLEAN -> {
-                            val list = arrayListOf<Boolean>()
-                            var index = 0
-                            val builder = StringBuilder()
-
-                            while (index < valueString.length) {
-                                val char = valueString[index]
-
-                                if (char != ',')
-                                    builder.append(char)
-
-                                if (char == ',' || (index == valueString.lastIndex) && builder.isNotEmpty()) {
-                                    val value = builder.toString().trim().lowercase().toBooleanStrictOrNull() ?: throw Exception("Failed conversion to boolean: ${builder.toString().trim()} ($lineIndex)")
-
-                                    list += value
-                                    builder.clear()
-                                }
-
-                                index++
-                            }
-
-                            list.toTypedArray()
-                        }
-                        Type.STRING -> {
-                            val list = arrayListOf<String>()
-                            var index = 0
-                            val builder = StringBuilder()
-                            var isString = false
-                            var hasString = false
-
-                            while (index < valueString.length) {
-                                val char = valueString[index]
-
-                                if (char == '"') {
-                                    isString = !isString
-                                    hasString = true
-                                } else if (isString)
-                                    builder.append(char)
-
-                                if (char == ',' || (index == valueString.lastIndex) && builder.isNotEmpty()) {
-                                    if (isString)
-                                        throw Exception("Strings must be surrounded by \" ($lineIndex)")
-
-                                    if (builder.isEmpty() && !hasString)
-                                        throw Exception("Invalid string array value ($lineIndex)")
-
-                                    val value = builder.toString()
-
-                                    list += value
-                                    builder.clear()
-                                    hasString = false
-                                }
-
-                                index++
-                            }
-
-                            list.toTypedArray()
-                        }
-                        else -> throw Exception("Unreachable")
-                    }
-
-                    setArrayValue(name, type, array)
-                } else {
-                    val value = when (type) {
-                        Type.INT -> valueString.toInt()
-                        Type.FLOAT -> valueString.toFloat()
-                        Type.BOOLEAN -> valueString.toBoolean()
-                        Type.STRING -> valueString.removeSurrounding("\"")
-                        else -> throw Exception("Unreachable")
-                    }
-
-                    setSingleValue(name, type, value)
-                }
-            }
-
-            lineIndex++
+        val obj = try {
+            element.jsonObject
+        } catch (e: Exception) {
+            Kore.log.error(this::class, "Properties text does not represent a json object.")
+            return
         }
+
+        fun readProperties(obj: JsonObject, properties: Properties) {
+            for ((name, valueElement) in obj) {
+                val valueObj = try {
+                    valueElement.jsonObject
+                } catch (e: Exception) {
+                    Kore.log.error(this::class, "Properties value does not represent a json object ($name).")
+                    continue
+                }
+
+                val typePrimitive = try {
+                    requireNotNull(valueObj["type"]).jsonPrimitive
+                } catch (e: Exception) {
+                    Kore.log.error(this::class, "Properties value type is invalid ($name, ${valueObj["type"]}).")
+                    continue
+                }
+
+                val typeString = typePrimitive.stringOrNull
+
+                if (typeString == null) {
+                    Kore.log.error(this::class, "Properties value type is invalid ($name, $typePrimitive).")
+                    continue
+                }
+
+                val type = enumValueOfOrNull<Type>(typePrimitive.string())
+
+                if (type == null) {
+                    Kore.log.error(this::class, "Properties value type is invalid ($name, $typePrimitive).")
+                    continue
+                }
+
+                val isArray = "array" in valueObj
+
+                when (type) {
+                    Type.INT -> if (isArray) {
+                        val array = try {
+                            requireNotNull(valueObj["array"]).jsonArray
+                        } catch (e: Exception) {
+                            Kore.log.error(this::class, "Properties array is invalid ($name, ${valueObj["array"]}).")
+                            continue
+                        }
+
+                        val list = arrayListOf<Int>()
+
+                        for (arrayElement in array) {
+                            val valuePrimitive = try {
+                                arrayElement.jsonPrimitive
+                            } catch (e: Exception) {
+                                Kore.log.error(this::class, "Properties array value is invalid ($name, $arrayElement).")
+                                continue
+                            }
+
+                            val value = valuePrimitive.intOrNull
+
+                            if (value == null) {
+                                Kore.log.error(this::class, "Properties array value is invalid ($name, $arrayElement).")
+                                continue
+                            }
+
+                            list += value
+                        }
+
+                        properties.setArrayValue(name, type, list.toTypedArray())
+                    } else {
+                        val valuePrimitive = try {
+                            requireNotNull(valueObj["value"]).jsonPrimitive
+                        } catch (e: Exception) {
+                            Kore.log.error(this::class, "Properties value is invalid ($name, ${valueObj["value"]}).")
+                            continue
+                        }
+
+                        val value = valuePrimitive.intOrNull
+
+                        if (value == null) {
+                            Kore.log.error(this::class, "Properties value is invalid ($name, $valuePrimitive).")
+                            continue
+                        }
+
+                        properties.setSingleValue(name, type, value)
+                    }
+                    Type.FLOAT -> if (isArray) {
+                        val array = try {
+                            requireNotNull(valueObj["array"]).jsonArray
+                        } catch (e: Exception) {
+                            Kore.log.error(this::class, "Properties array is invalid ($name, ${valueObj["array"]}).")
+                            continue
+                        }
+
+                        val list = arrayListOf<Float>()
+
+                        for (arrayElement in array) {
+                            val valuePrimitive = try {
+                                arrayElement.jsonPrimitive
+                            } catch (e: Exception) {
+                                Kore.log.error(this::class, "Properties array value is invalid ($name, $arrayElement).")
+                                continue
+                            }
+
+                            val value = valuePrimitive.floatOrNull
+
+                            if (value == null) {
+                                Kore.log.error(this::class, "Properties array value is invalid ($name, $arrayElement).")
+                                continue
+                            }
+
+                            list += value
+                        }
+
+                        properties.setArrayValue(name, type, list.toTypedArray())
+                    } else {
+                        val valuePrimitive = try {
+                            requireNotNull(valueObj["value"]).jsonPrimitive
+                        } catch (e: Exception) {
+                            Kore.log.error(this::class, "Properties value is invalid ($name, ${valueObj["value"]}).")
+                            continue
+                        }
+
+                        val value = valuePrimitive.floatOrNull
+
+                        if (value == null) {
+                            Kore.log.error(this::class, "Properties value is invalid ($name, $valuePrimitive).")
+                            continue
+                        }
+
+                        properties.setSingleValue(name, type, value)
+                    }
+                    Type.BOOLEAN -> if (isArray) {
+                        val array = try {
+                            requireNotNull(valueObj["array"]).jsonArray
+                        } catch (e: Exception) {
+                            Kore.log.error(this::class, "Properties array is invalid ($name, ${valueObj["array"]}).")
+                            continue
+                        }
+
+                        val list = arrayListOf<Boolean>()
+
+                        for (arrayElement in array) {
+                            val valuePrimitive = try {
+                                arrayElement.jsonPrimitive
+                            } catch (e: Exception) {
+                                Kore.log.error(this::class, "Properties array value is invalid ($name, $arrayElement).")
+                                continue
+                            }
+
+                            val value = valuePrimitive.booleanOrNull
+
+                            if (value == null) {
+                                Kore.log.error(this::class, "Properties array value is invalid ($name, $arrayElement).")
+                                continue
+                            }
+
+                            list += value
+                        }
+
+                        properties.setArrayValue(name, type, list.toTypedArray())
+                    } else {
+                        val valuePrimitive = try {
+                            requireNotNull(valueObj["value"]).jsonPrimitive
+                        } catch (e: Exception) {
+                            Kore.log.error(this::class, "Properties value is invalid ($name, ${valueObj["value"]}).")
+                            continue
+                        }
+
+                        val value = valuePrimitive.booleanOrNull
+
+                        if (value == null) {
+                            Kore.log.error(this::class, "Properties value is invalid ($name, $valuePrimitive).")
+                            continue
+                        }
+
+                        properties.setSingleValue(name, type, value)
+                    }
+                    Type.STRING -> if (isArray) {
+                        val array = try {
+                            requireNotNull(valueObj["array"]).jsonArray
+                        } catch (e: Exception) {
+                            Kore.log.error(this::class, "Properties array is invalid ($name, ${valueObj["array"]}).")
+                            continue
+                        }
+
+                        val list = arrayListOf<String>()
+
+                        for (arrayElement in array) {
+                            val valuePrimitive = try {
+                                arrayElement.jsonPrimitive
+                            } catch (e: Exception) {
+                                Kore.log.error(this::class, "Properties array value is invalid ($name, $arrayElement).")
+                                continue
+                            }
+
+                            val value = valuePrimitive.stringOrNull
+
+                            if (value == null) {
+                                Kore.log.error(this::class, "Properties array value is invalid ($name, $arrayElement).")
+                                continue
+                            }
+
+                            list += value
+                        }
+
+                        properties.setArrayValue(name, type, list.toTypedArray())
+                    } else {
+                        val valuePrimitive = try {
+                            requireNotNull(valueObj["value"]).jsonPrimitive
+                        } catch (e: Exception) {
+                            Kore.log.error(this::class, "Properties value is invalid ($name, ${valueObj["value"]}).")
+                            continue
+                        }
+
+                        val value = valuePrimitive.stringOrNull
+
+                        if (value == null) {
+                            Kore.log.error(this::class, "Properties value is invalid ($name, $valuePrimitive).")
+                            continue
+                        }
+
+                        properties.setSingleValue(name, type, value)
+                    }
+                    Type.PROPERTIES -> if (isArray) {
+                        val array = try {
+                            requireNotNull(valueObj["array"]).jsonArray
+                        } catch (e: Exception) {
+                            Kore.log.error(this::class, "Properties array is invalid ($name, ${valueObj["array"]}).")
+                            continue
+                        }
+
+                        val list = arrayListOf<Properties>()
+
+                        for (arrayElement in array) {
+                            val objValue = try {
+                                arrayElement.jsonObject
+                            } catch (e: Exception) {
+                                Kore.log.error(this::class, "Properties array value is invalid ($name, $arrayElement).")
+                                continue
+                            }
+
+                            val valueProperties = Properties()
+                            readProperties(objValue, valueProperties)
+
+                            list += valueProperties
+                        }
+
+                        properties.setArrayValue(name, type, list.toTypedArray())
+                    } else {
+                        val objValue = try {
+                            requireNotNull(valueObj["value"]).jsonObject
+                        } catch (e: Exception) {
+                            Kore.log.error(this::class, "Properties value is invalid ($name, ${valueObj["value"]}).")
+                            continue
+                        }
+
+                        val valueProperties = Properties()
+                        readProperties(objValue, valueProperties)
+
+                        properties.setSingleValue(name, type, valueProperties)
+                    }
+                }
+            }
+        }
+
+        readProperties(obj, this)
     }
 
     fun clear() {
@@ -520,8 +592,8 @@ open class PropertiesArrayDelegate(defaultValue: () -> Array<Properties>) : Prop
     override fun set(properties: Properties, name: String, value: Array<Properties>) = properties.setPropertiesArray(name, value)
 }
 
-abstract class VectorDelegate<T, V : Vector<T, V>>(val setDefaults: (V) -> Unit, val cachedValue: V) {
-    var isDefaultSet = false
+abstract class VectorDelegate<T, V : Vector<T, V>>(val setDefaults: (V) -> Unit, private val cachedValue: V) {
+    private var isDefaultSet = false
 
     abstract fun get(properties: Properties, name: String): Array<T>
 
