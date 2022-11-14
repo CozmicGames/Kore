@@ -4,7 +4,7 @@ import com.cozmicgames.utils.Disposable
 import com.cozmicgames.utils.Reflection
 import kotlin.reflect.KClass
 
-class Pool<T : Any>(size: Int = 10, private val supplier: () -> T, private val reset: (T) -> Unit = { if (it is Resettable) it.reset() }) : Disposable {
+open class Pool<T : Any>(size: Int = 10, private val supplier: () -> T, private val reset: (T) -> Unit = { if (it is Resettable) it.reset() }) : Disposable {
     constructor(type: KClass<T>, size: Int = 10, reset: (T) -> Unit = { if (it is Resettable) it.reset() }) : this(size, requireNotNull(Reflection.getSupplier(type)), reset)
 
     private var elements = ArrayList<T>(size)
