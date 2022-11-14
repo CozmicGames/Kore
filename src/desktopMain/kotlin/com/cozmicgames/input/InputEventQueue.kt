@@ -61,9 +61,9 @@ class InputEventQueue {
 
     fun onKeyUp(key: Key, time: Double) = add(Type.KEY_UP, time, key.ordinal)
 
-    fun onTouchDown(x: Int, y: Int, pointer: Int, button: MouseButton, time: Double) = add(Type.TOUCH_DOWN, time, x, y, pointer, button.ordinal)
+    fun onTouchDown(x: Int, y: Int, pointer: Int, button: MouseButton, time: Double) = add(Type.TOUCH_DOWN, time, x, y, button.ordinal, pointer)
 
-    fun onTouchUp(x: Int, y: Int, pointer: Int, button: MouseButton, time: Double) = add(Type.TOUCH_UP, time, x, y, pointer, button.ordinal)
+    fun onTouchUp(x: Int, y: Int, pointer: Int, button: MouseButton, time: Double) = add(Type.TOUCH_UP, time, x, y, button.ordinal, pointer)
 
     fun onScroll(x: Float, y: Float, time: Double) = add(Type.SCROLLED, time, x.toBits(), y.toBits())
 
