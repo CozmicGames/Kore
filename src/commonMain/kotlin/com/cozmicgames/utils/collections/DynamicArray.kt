@@ -9,8 +9,18 @@ class DynamicArray<T>(initialSize: Int = 10) : MutableIterable<T>, Disposable {
     var size = 0
         private set
 
-    fun add(element: T) {
-        this[size] = element
+    fun findFreeIndex(): Int {
+        elements.forEachIndexed { index, element ->
+            if (element == null)
+                return index
+        }
+        return size
+    }
+
+    fun add(element: T): Int {
+        val index = findFreeIndex()
+        this[index] = element
+        return index
     }
 
     fun remove(element: T): Boolean {
@@ -18,7 +28,7 @@ class DynamicArray<T>(initialSize: Int = 10) : MutableIterable<T>, Disposable {
         return if (index < 0)
             false
         else
-            removeIndex(indexOf(element)) != null
+            removeIndex(index) != null
     }
 
     @Suppress("UNCHECKED_CAST")
@@ -102,7 +112,7 @@ class DynamicArray<T>(initialSize: Int = 10) : MutableIterable<T>, Disposable {
     }
 }
 
-fun <T: Any> DynamicArray<T>.getOrPut(index: Int, supplier: () -> T): T {
+fun <T : Any> DynamicArray<T>.getOrPut(index: Int, supplier: () -> T): T {
     var result = this[index]
     if (result == null) {
         result = supplier()

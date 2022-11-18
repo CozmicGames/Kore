@@ -3,11 +3,15 @@ package com.cozmicgames.input
 import com.cozmicgames.Kore
 import com.cozmicgames.graphics
 import com.cozmicgames.graphics.DesktopGraphics
+import com.cozmicgames.graphics.Image
+import com.cozmicgames.graphics.toByteArray
 import com.cozmicgames.utils.Disposable
 import com.cozmicgames.utils.Updateable
 import org.lwjgl.glfw.GLFW.*
 import org.lwjgl.glfw.GLFWGamepadState
+import org.lwjgl.glfw.GLFWImage
 import org.lwjgl.system.MemoryStack.stackPush
+import org.lwjgl.system.MemoryUtil
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
@@ -75,6 +79,21 @@ class DesktopInput : InputProcessor, Input, Updateable, Disposable {
     override val lastX get() = internalLastX
 
     override val lastY get() = internalLastY
+
+    private var actualCursor: Cursor? = null
+        get() {
+            if (field == null)
+                field = Cursor.ARROW
+
+            return field
+        }
+
+    override var cursor: Cursor
+        set(value) {
+            actualCursor = value
+            glfwSetCursor((Kore.graphics as DesktopGraphics).window, (value as DesktopCursor).handle)
+        }
+        get() = requireNotNull(actualCursor)
 
     override var isCursorGrabbed: Boolean
         get() = glfwGetInputMode((Kore.graphics as DesktopGraphics).window, GLFW_CURSOR) == GLFW_CURSOR_DISABLED
@@ -218,6 +237,45 @@ class DesktopInput : InputProcessor, Input, Updateable, Disposable {
     override fun isButtonJustDown(button: MouseButton) = lock.read { buttonsJustDown[button.ordinal] }
 
     override fun isButtonJustUp(button: MouseButton) = lock.read { buttonsJustUp[button.ordinal] }
+
+    override fun createStandardCursor(type: Cursor.StandardType): Cursor {
+        return DesktopCursor(
+            glfwCreateStandardCursor(
+                when (type) {
+                    Cursor.StandardType.ARROW -> GLFW_ARROW_CURSOR
+                    Cursor.StandardType.IBEAM -> GLFW_IBEAM_CURSOR
+                    Cursor.StandardType.CROSSHAIR -> GLFW_CROSSHAIR_CURSOR
+                    Cursor.StandardType.HAND -> GLFW_HAND_CURSOR
+                    Cursor.StandardType.HRESIZE -> GLFW_HRESIZE_CURSOR
+                    Cursor.StandardType.VRESIZE -> GLFW_VRESIZE_CURSOR
+                }
+            )
+        )
+    }
+
+    override fun createCursor(image: Image, xHot: Int, yHot: Int): Cursor {
+        val flippedImage = image.copy()
+        flippedImage.flipY()
+
+        val glwImage = GLFWImage.calloc()
+        glwImage.width(image.width)
+        glwImage.height(image.height)
+        val data = image.pixels.toByteArray()
+        val buffer = MemoryUtil.nmemAlloc(data.size.toLong())
+
+        data.forEachIndexed { index, byte ->
+            MemoryUtil.memSet(buffer + index, byte.toInt(), 1)
+        }
+
+        glwImage.pixels(MemoryUtil.memByteBuffer(buffer, data.size))
+
+        val handle = glfwCreateCursor(glwImage, xHot, yHot)
+
+        MemoryUtil.nmemFree(buffer)
+        glwImage.free()
+
+        return DesktopCursor(handle)
+    }
 
     fun getKeyFromCode(c: Int) = when (c) {
         GLFW_KEY_ENTER -> Keys.KEY_ENTER

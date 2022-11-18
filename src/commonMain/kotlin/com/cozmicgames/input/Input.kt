@@ -1,5 +1,6 @@
 package com.cozmicgames.input
 
+import com.cozmicgames.graphics.Image
 import com.cozmicgames.utils.Disposable
 
 interface InputListener {
@@ -22,6 +23,8 @@ interface Input : Disposable {
     val deltaX: Int
     val deltaY: Int
 
+    var cursor: Cursor
+
     var isCursorGrabbed: Boolean
 
     val gamepads: List<Gamepad>
@@ -32,9 +35,11 @@ interface Input : Disposable {
     fun isButtonDown(button: MouseButton): Boolean
     fun isButtonJustDown(button: MouseButton): Boolean
     fun isButtonJustUp(button: MouseButton): Boolean
-
     fun addListener(listener: InputListener)
     fun removeListener(listener: InputListener)
+    fun createStandardCursor(type: Cursor.StandardType): Cursor
+    fun createCursor(image: Image, xHot: Int, yHot: Int): Cursor
+
 }
 
 fun Input.getGamepad(id: Int) = gamepads.find { it.id == id }

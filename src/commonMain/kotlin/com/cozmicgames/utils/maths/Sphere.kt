@@ -3,13 +3,15 @@ package com.cozmicgames.utils.maths
 import kotlin.math.max
 
 class Sphere(var x: Float, var y: Float, var z: Float, var radius: Float) {
-    constructor() : this(0.0f, 0.0f, 0.0f, Float.MAX_VALUE)
+    val isInfinite get() = radius < 0.0f || radius.isInfinite()
+
+    constructor() : this(0.0f, 0.0f, 0.0f, Float.POSITIVE_INFINITY)
 
     fun infinite() {
         x = 0.0f
         y = 0.0f
         z = 0.0f
-        radius = Float.MAX_VALUE
+        radius = Float.POSITIVE_INFINITY
     }
 
     operator fun contains(vector: Vector3): Boolean {

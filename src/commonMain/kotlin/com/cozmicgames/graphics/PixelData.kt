@@ -10,7 +10,7 @@ import com.cozmicgames.utils.extensions.clamp
  * @param width The width of the pixel array.
  * @param height The height of the pixel array.
  */
-class PixelData(width: Int, height: Int) {
+class PixelData(val width: Int, val height: Int) {
     val data = Array(width * height) { Color(Color.CLEAR) }
 
     /**
@@ -50,6 +50,17 @@ class PixelData(width: Int, height: Int) {
         data.forEach {
             it.set(color)
         }
+    }
+
+    /**
+     * Copies this [PixelData].
+     */
+    fun copy(): PixelData {
+        val copiedData = PixelData(width, height)
+        data.forEachIndexed { index, color ->
+            copiedData.data[index] = color.copy()
+        }
+        return copiedData
     }
 }
 

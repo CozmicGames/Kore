@@ -317,6 +317,13 @@ class Image(val width: Int, val height: Int, val pixels: PixelData = PixelData(w
             }
         }
     }
+
+    /**
+     * Copies this image.
+     */
+    fun copy(): Image {
+        return Image(width, height, pixels.copy())
+    }
 }
 
 /**
