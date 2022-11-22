@@ -69,4 +69,10 @@ inline val String.directory: String
         return substring(0, if (indexOfSeparator == -1) length else indexOfSeparator + 1)
     }
 
+inline val String.pathWithoutExtension: String
+    get() {
+        val indexOfPoint = lastIndexOf('.')
+        return substring(0, if (indexOfPoint == -1) length else indexOfPoint)
+    }
+
 fun String.words(vararg delimiters: String = whitespaceCharacters()) = StringStream(this).getWords(*delimiters)
