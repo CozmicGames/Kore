@@ -36,13 +36,20 @@ interface Dialogs {
     }
 
     /**
+     * Shows a popup dialog with the given title, message and option type.
+     *
+     * @param title The title of the dialog.
+     * @param message The message of the dialog.
+     * @param type The type of the dialog.
+     */
+    fun popup(title: String, message: String, type: Type)
+
+    /**
      * Shows a message dialog with the given title, message and option type.
      *
      * @param title The title of the dialog.
      * @param message The message of the dialog.
      * @param type The type of the dialog.
-     *
-     * @return The result of the dialog.
      */
     fun message(title: String, message: String, type: Type)
 
@@ -75,21 +82,35 @@ interface Dialogs {
      * Shows a save dialog.
      * The result of the dialog is returned as a string.
      *
+     * @param title The title of the dialog.
      * @param default The default path. Defaults to null.
      * @param filters The filters to use to select file extensions.
      *
      * @return The result of the dialog or null if the dialog was cancelled.
      */
-    fun save(default: String? = null, vararg filters: String): String?
+    fun save(title: String, default: String? = null, vararg filters: String): String?
 
     /**
      * Shows an open dialog.
      * The result of the dialog is returned as a string.
      *
+     * @param title The title of the dialog.
      * @param default The default path. Defaults to null.
      * @param filters The filters to use to select file extensions.
      *
      * @return The result of the dialog or null if the dialog was cancelled.
      */
-    fun open(default: String? = null, vararg filters: String): String?
+    fun open(title: String, default: String? = null, vararg filters: String): String?
+
+    /**
+     * Shows an open dialog that can select multiple files.
+     * The result of the dialog is returned as an array of strings.
+     *
+     * @param title The title of the dialog.
+     * @param default The default path. Defaults to null.
+     * @param filters The filters to use to select file extensions.
+     *
+     * @return The result of the dialog or null if the dialog was cancelled.
+     */
+    fun openMulti(title: String, default: String? = null, vararg filters: String): Array<String>?
 }
