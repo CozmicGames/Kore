@@ -335,7 +335,7 @@ class Image(val width: Int, val height: Int, val pixels: PixelData = PixelData(w
  */
 fun Image.splitAlongX(count: Int) = Array(count) {
     val image = Image(width / count, height)
-    image.setImage(this, 0, 0, image.width, image.height, width / count, height, width / count, height)
+    image.setImage(this, 0, 0, image.width, image.height, it * width / count, 0, width / count, height)
     image
 }
 
@@ -348,7 +348,7 @@ fun Image.splitAlongX(count: Int) = Array(count) {
  */
 fun Image.splitAlongY(count: Int) = Array(count) {
     val image = Image(width, height / count)
-    image.setImage(this, 0, 0, image.width, image.height, 0, height / count, width, height / count)
+    image.setImage(this, 0, 0, image.width, image.height, 0, it * height / count, 0, height / count)
     image
 }
 
@@ -361,17 +361,21 @@ fun Image.splitAlongY(count: Int) = Array(count) {
  * @return An [Array2D] of the split images.
  */
 fun Image.split(columns: Int, rows: Int): Array2D<Image> {
-    val imagesX = splitAlongX(columns)
-    val images = Array(imagesX.size) {
-        imagesX[it].splitAlongY(rows)
+    val singleImageWidth = width / columns
+    val singleImageHeight = height / rows
+
+    return Array2D(columns, rows) { x, y ->
+        val image = Image(singleImageWidth, singleImageHeight)
+        image.setImage(this, 0, 0, image.width, image.height, x * singleImageWidth, y * singleImageHeight, singleImageWidth, singleImageHeight)
+        image
     }
-    return Array2D(columns) { x, y -> images[x][y] }
 }
 
 /**
  * Creates a [Texture2D] from the image.
  * @see [Graphics.createTexture2D]
  *
+ * @param sampler The sampler to create the texture with.
  * @param format The format of the texture. Defaults to [Texture.Format.RGBA8_UNORM].
  * @param block The block to execute to configure the texture.
  *
