@@ -1,7 +1,6 @@
 package com.cozmicgames.files
 
 import com.cozmicgames.Kore
-import com.cozmicgames.files
 import com.cozmicgames.log
 import com.cozmicgames.utils.extensions.directory
 import java.io.*
@@ -10,7 +9,7 @@ import java.util.zip.ZipEntry
 import java.util.zip.ZipFile
 
 class DesktopZipFileHandle(private val zipFile: ZipFile, private val entry: ZipEntry) : FileHandle {
-    override val fullPath get() = entry.name
+    override val fullPath get() = entry.name.replace("\\", "/")
 
     override val type get() = Files.Type.ZIP
 
@@ -25,7 +24,7 @@ class DesktopZipFileHandle(private val zipFile: ZipFile, private val entry: ZipE
     override fun list(block: (String) -> Unit) {
         zipFile.stream().forEach {
             if (it.name.startsWith(fullPath)) {
-                block(it.name.substring(fullPath.length))
+                block(it.name.removePrefix(fullPath).removePrefix("/").removeSuffix("/"))
             }
         }
     }
@@ -47,20 +46,20 @@ class DesktopZipFileHandle(private val zipFile: ZipFile, private val entry: ZipE
         if (fullPath.isEmpty())
             return DesktopZipFileHandle(zipFile, zipFile.getEntry(path))
 
-        return DesktopZipFileHandle(zipFile, zipFile.getEntry("$fullPath${Kore.files.separator}$path"))
+        return DesktopZipFileHandle(zipFile, zipFile.getEntry("$fullPath/$path"))
     }
 
     override fun sibling(path: String): FileHandle {
         if (fullPath.isEmpty())
             Kore.log.fail(this::class, "Cannot get a sibling of the root directory")
 
-        return DesktopZipFileHandle(zipFile, zipFile.getEntry("${fullPath.directory}${Kore.files.separator}$path"))
+        return DesktopZipFileHandle(zipFile, zipFile.getEntry("${fullPath.directory}/$path"))
     }
 
     override fun parent(): FileHandle {
         var parent = fullPath.directory
         if (parent.isEmpty())
-            parent = Kore.files.separator
+            parent = "/"
 
         return DesktopZipFileHandle(zipFile, zipFile.getEntry(parent))
     }

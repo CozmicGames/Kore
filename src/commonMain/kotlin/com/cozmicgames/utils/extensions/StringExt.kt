@@ -1,14 +1,11 @@
 package com.cozmicgames.utils.extensions
 
-import com.cozmicgames.Kore
-import com.cozmicgames.files
 import com.cozmicgames.utils.StringStream
 
 private val formatRegex = Regex("%([-]?\\d+)?(\\w)")
 private val commentsRegex = Regex("(?:/\\*(?:[^*]|(?:\\*+[^*/]))*\\*+/)|(?://.*)")
 private val blankLinesRegex = Regex("(?m)^[ \t]*\r?\n")
 private val whitespaceCharacters = arrayOf(" ", "\t", "\n", "\r")
-
 fun whitespaceCharacters() = whitespaceCharacters
 
 fun String.format(vararg params: Any): String {
@@ -52,20 +49,20 @@ inline val String.extension: String
 
 inline val String.nameWithExtension: String
     get() {
-        val indexOfSeparator = lastIndexOf(Kore.files.separator)
+        val indexOfSeparator = lastIndexOf("/")
         return substring(if (indexOfSeparator == -1) 0 else indexOfSeparator + 1, length)
     }
 
 inline val String.nameWithoutExtension: String
     get() {
-        val indexOfSeparator = lastIndexOf(Kore.files.separator)
+        val indexOfSeparator = lastIndexOf("/")
         val indexOfPoint = lastIndexOf('.')
         return substring(if (indexOfSeparator == -1) 0 else indexOfSeparator + 1, if (indexOfPoint == -1) length else indexOfPoint)
     }
 
 inline val String.directory: String
     get() {
-        val indexOfSeparator = lastIndexOf(Kore.files.separator)
+        val indexOfSeparator = lastIndexOf("/")
         return substring(0, if (indexOfSeparator == -1) length else indexOfSeparator + 1)
     }
 

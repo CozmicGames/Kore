@@ -1,7 +1,5 @@
 package com.cozmicgames.files
 
-import com.cozmicgames.Kore
-import com.cozmicgames.files
 import com.cozmicgames.utils.Charset
 import com.cozmicgames.utils.Charsets
 import com.cozmicgames.utils.extensions.directory
@@ -117,7 +115,7 @@ interface FileHandle {
 /**
  * Whether this file handle is a directory.
  */
-val FileHandle.isDirectory get() = fullPath.endsWith(Kore.files.separator)
+val FileHandle.isDirectory get() = fullPath.endsWith("/")
 
 /**
  * Whether this file handle is a file.

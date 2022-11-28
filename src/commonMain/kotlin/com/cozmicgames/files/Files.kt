@@ -34,11 +34,6 @@ interface Files {
     }
 
     /**
-     * The default file separator of the current platform.
-     */
-    val separator: String
-
-    /**
      * The native endianness of the current platform.
      */
     val nativeEndianness: Endianness

@@ -1,10 +1,7 @@
 package com.cozmicgames.files
 
-import com.cozmicgames.Kore
-import com.cozmicgames.log
 import java.io.File
 import java.nio.ByteOrder
-import java.util.zip.ZipFile
 
 
 class DesktopFiles : Files {
@@ -12,8 +9,6 @@ class DesktopFiles : Files {
         private val externalPath = System.getProperty("user.home") + File.separator
         private val localPath = File("").absolutePath + File.separator
     }
-
-    override val separator get() = File.separator
 
     override val nativeEndianness = when (ByteOrder.nativeOrder()) {
         ByteOrder.LITTLE_ENDIAN -> Files.Endianness.LITTLE_ENDIAN
@@ -26,11 +21,11 @@ class DesktopFiles : Files {
     }
 
     override fun local(path: String): FileHandle {
-        return DesktopFileHandle("$localPath$separator$path", Files.Type.LOCAL)
+        return DesktopFileHandle("$localPath/$path", Files.Type.LOCAL)
     }
 
     override fun external(path: String): FileHandle {
-        return DesktopFileHandle("$externalPath$separator$path", Files.Type.EXTERNAL)
+        return DesktopFileHandle("$externalPath/$path", Files.Type.EXTERNAL)
     }
 
     override fun absolute(path: String): FileHandle {

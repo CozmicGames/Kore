@@ -1,12 +1,14 @@
 package com.cozmicgames.files
 
 import com.cozmicgames.Kore
-import com.cozmicgames.files
 import com.cozmicgames.log
 import java.io.*
 import java.util.zip.ZipFile
 
-class DesktopFileHandle(override val fullPath: String, override val type: Files.Type) : FileHandle {
+class DesktopFileHandle(fullPath: String, override val type: Files.Type) : FileHandle {
+    override val fullPath = fullPath
+        get() = field.replace("\\", "/")
+
     internal val file = File(fullPath)
 
     override val exists get() = file.exists()
@@ -65,7 +67,7 @@ class DesktopFileHandle(override val fullPath: String, override val type: Files.
     override fun parent(): FileHandle {
         var parentFile = file.parentFile
         if (parentFile == null)
-            parentFile = File(Kore.files.separator)
+            parentFile = File("/")
 
         return DesktopFileHandle(parentFile.absolutePath, type)
     }

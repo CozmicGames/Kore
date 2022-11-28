@@ -2,7 +2,6 @@ package com.cozmicgames.files
 
 import com.cozmicgames.Kore
 import com.cozmicgames.application
-import com.cozmicgames.files
 import com.cozmicgames.log
 import com.cozmicgames.utils.extensions.directory
 import java.io.*
@@ -32,7 +31,7 @@ class DesktopAssetFileHandle(override val fullPath: String) : FileHandle {
                 val entry = zip.nextEntry ?: break
 
                 if (entry.name.startsWith(fullPath))
-                    block(entry.name)
+                    block(entry.name.removePrefix(fullPath).removePrefix("/").removeSuffix("/"))
             }
         }
 
@@ -62,20 +61,20 @@ class DesktopAssetFileHandle(override val fullPath: String) : FileHandle {
         if (fullPath.isEmpty())
             return DesktopAssetFileHandle(path)
 
-        return DesktopAssetFileHandle("$fullPath${Kore.files.separator}$path")
+        return DesktopAssetFileHandle("$fullPath/$path")
     }
 
     override fun sibling(path: String): FileHandle {
         if (fullPath.isEmpty())
             Kore.log.fail(this::class, "Cannot get a sibling of the root directory")
 
-        return DesktopAssetFileHandle("${fullPath.directory}${Kore.files.separator}$path")
+        return DesktopAssetFileHandle("${fullPath.directory}/$path")
     }
 
     override fun parent(): FileHandle {
         var parent = fullPath.directory
         if (parent.isEmpty())
-            parent = Kore.files.separator
+            parent = "/"
 
         return DesktopAssetFileHandle(parent)
     }
