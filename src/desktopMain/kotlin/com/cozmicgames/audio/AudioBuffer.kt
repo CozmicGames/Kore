@@ -52,8 +52,7 @@ class AudioBuffer : Disposable {
                     buffer.put(srcBuffer.get())
             }
 
-            buffer.position(0)
-            alBufferData(handle, format, buffer, sampleRate)
+            nalBufferData(handle, format, MemoryUtil.memAddress(buffer), count, sampleRate)
 
             if (!isStackAllocated)
                 MemoryUtil.memFree(buffer)
