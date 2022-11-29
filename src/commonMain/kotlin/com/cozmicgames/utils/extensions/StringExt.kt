@@ -63,7 +63,7 @@ inline val String.nameWithoutExtension: String
 inline val String.directory: String
     get() {
         val indexOfSeparator = lastIndexOf("/")
-        return substring(0, if (indexOfSeparator == -1) length else indexOfSeparator + 1)
+        return substring(0, if (indexOfSeparator == -1) length else indexOfSeparator)
     }
 
 inline val String.pathWithoutExtension: String

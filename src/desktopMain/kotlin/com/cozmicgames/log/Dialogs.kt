@@ -60,7 +60,7 @@ class DesktopDialogs : Dialogs {
             for (filter in filters) {
                 filterBuffer.put(it.ASCII("*.$filter"))
             }
-            tinyfd_saveFileDialog(title, default, filterBuffer.flip(), null)
+            tinyfd_saveFileDialog(title, default, filterBuffer.flip(), null)?.replace("\\", "/")
         }
     }
 
@@ -70,7 +70,7 @@ class DesktopDialogs : Dialogs {
             for (filter in filters) {
                 filterBuffer.put(it.ASCII("*.$filter"))
             }
-            tinyfd_openFileDialog(title, default, filterBuffer.flip(), null, false)
+            tinyfd_openFileDialog(title, default, filterBuffer.flip(), null, false)?.replace("\\", "/")
         }
     }
 
@@ -80,7 +80,7 @@ class DesktopDialogs : Dialogs {
             for (filter in filters) {
                 filterBuffer.put(it.ASCII("*.$filter"))
             }
-            tinyfd_openFileDialog(title, default, filterBuffer.flip(), null, true)?.split("|")?.toTypedArray()
+            tinyfd_openFileDialog(title, default, filterBuffer.flip(), null, true)?.split("|")?.map { it.replace("\\", "/") }?.toTypedArray()
         }
     }
 }

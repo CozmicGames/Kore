@@ -24,7 +24,7 @@ class DesktopZipFileHandle(private val zipFile: ZipFile, private val entry: ZipE
     override fun list(block: (String) -> Unit) {
         zipFile.stream().forEach {
             if (it.name.startsWith(fullPath)) {
-                block(it.name.removePrefix(fullPath).removePrefix("/").removeSuffix("/"))
+                block(it.name.removePrefix(fullPath).removeSuffix("/"))
             }
         }
     }

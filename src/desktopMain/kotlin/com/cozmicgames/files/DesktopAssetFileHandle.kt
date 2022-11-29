@@ -31,7 +31,7 @@ class DesktopAssetFileHandle(override val fullPath: String) : FileHandle {
                 val entry = zip.nextEntry ?: break
 
                 if (entry.name.startsWith(fullPath))
-                    block(entry.name.removePrefix(fullPath).removePrefix("/").removeSuffix("/"))
+                    block(entry.name.removePrefix(fullPath).removeSuffix("/"))
             }
         }
 
@@ -61,14 +61,14 @@ class DesktopAssetFileHandle(override val fullPath: String) : FileHandle {
         if (fullPath.isEmpty())
             return DesktopAssetFileHandle(path)
 
-        return DesktopAssetFileHandle("$fullPath/$path")
+        return DesktopAssetFileHandle("$fullPath$path")
     }
 
     override fun sibling(path: String): FileHandle {
         if (fullPath.isEmpty())
             Kore.log.fail(this::class, "Cannot get a sibling of the root directory")
 
-        return DesktopAssetFileHandle("${fullPath.directory}/$path")
+        return DesktopAssetFileHandle("${fullPath.directory}$path")
     }
 
     override fun parent(): FileHandle {

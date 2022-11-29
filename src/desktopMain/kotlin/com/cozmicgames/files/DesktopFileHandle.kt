@@ -2,6 +2,7 @@ package com.cozmicgames.files
 
 import com.cozmicgames.Kore
 import com.cozmicgames.log
+import com.cozmicgames.utils.extensions.directory
 import java.io.*
 import java.util.zip.ZipFile
 
@@ -9,7 +10,7 @@ class DesktopFileHandle(fullPath: String, override val type: Files.Type) : FileH
     override val fullPath = fullPath
         get() = field.replace("\\", "/")
 
-    internal val file = File(fullPath)
+    internal val file = File(this.fullPath)
 
     override val exists get() = file.exists()
 
@@ -23,7 +24,9 @@ class DesktopFileHandle(fullPath: String, override val type: Files.Type) : FileH
         if (!file.exists() || !file.isDirectory)
             return
 
-        file.list()?.forEach(block)
+        file.list()?.forEach {
+            block(it.replace("\\", "/"))
+        }
     }
 
     override fun delete() {
@@ -54,14 +57,14 @@ class DesktopFileHandle(fullPath: String, override val type: Files.Type) : FileH
         if (fullPath.isEmpty())
             return DesktopFileHandle(path, type)
 
-        return DesktopFileHandle(File(fullPath, path).absolutePath, type)
+        return DesktopFileHandle("${fullPath.removeSuffix("/")}/$path", type)
     }
 
     override fun sibling(path: String): FileHandle {
         if (fullPath.isEmpty())
             Kore.log.fail(this::class, "Cannot get a sibling of the root directory")
 
-        return DesktopFileHandle(File(file.parent, path).absolutePath, type)
+        return DesktopFileHandle("${fullPath.directory}/$path", type)
     }
 
     override fun parent(): FileHandle {
