@@ -501,6 +501,10 @@ open class Properties {
         values.clear()
     }
 
+    fun set(properties: Properties) {
+        values.putAll(properties.values)
+    }
+
     override fun hashCode(): Int {
         return values.values.contentHashCode()
     }
