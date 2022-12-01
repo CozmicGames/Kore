@@ -23,7 +23,6 @@ import org.lwjgl.system.Platform
 import java.awt.image.BufferedImage
 import java.io.OutputStream
 import java.lang.Exception
-import java.nio.ByteBuffer
 import javax.imageio.ImageIO
 
 class DesktopGraphics : Graphics, Disposable {
@@ -152,7 +151,7 @@ class DesktopGraphics : Graphics, Disposable {
 
         repeat(bufferedImage.height) { y ->
             repeat(bufferedImage.width) { x ->
-                val color = bufferedImage.getRGB(x, (bufferedImage.height - 1) - y)
+                val color = bufferedImage.getRGB(x, y)
 
                 val a = ((color ushr 24) and 0xFF).toFloat() / 0xFF
                 val r = ((color ushr 16) and 0xFF).toFloat() / 0xFF
@@ -299,7 +298,6 @@ class DesktopGraphics : Graphics, Disposable {
                 val file = DesktopAssetFileHandle(iconPaths[it])
                 if (file.exists)
                     readImage(file)?.let { image ->
-                        image.flipY()
                         images[it].width(image.width)
                         images[it].height(image.height)
                         val data = image.pixels.toByteArray()
