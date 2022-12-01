@@ -14,6 +14,7 @@ import com.cozmicgames.utils.use
 import com.cozmicgames.graphics.gpu.Texture
 import com.cozmicgames.graphics.gpu.Texture2D
 import com.cozmicgames.utils.maths.forEachLinePoint
+import kotlin.math.min
 
 /**
  * An image is a 2D array of pixels.
@@ -319,6 +320,26 @@ class Image(val width: Int, val height: Int, val pixels: PixelData = PixelData(w
     }
 
     /**
+     * Returns an image consisting of a sub portion of this image.
+     *
+     * @param x The x coordinate of the sub image region.
+     * @param y The y coordinate of the sub image region.
+     * @param width The width of the sub image region.
+     * @param height The height of the sub image region.
+     */
+    fun getSubImage(x: Int, y: Int, width: Int, height: Int): Image {
+        val image = Image(width, height)
+
+        repeat(min(width, this.width - x)) { px ->
+            repeat(min(height, this.height - y)) { py ->
+                image[px, py] = this[x + px, y + py]
+            }
+        }
+
+        return image
+    }
+
+    /**
      * Copies this image.
      */
     fun copy(): Image {
@@ -365,9 +386,7 @@ fun Image.split(columns: Int, rows: Int): Array2D<Image> {
     val singleImageHeight = height / rows
 
     return Array2D(columns, rows) { x, y ->
-        val image = Image(singleImageWidth, singleImageHeight)
-        image.setImage(this, 0, 0, image.width, image.height, x * singleImageWidth, y * singleImageHeight, singleImageWidth, singleImageHeight)
-        image
+        getSubImage(x * singleImageWidth, y * singleImageHeight, singleImageWidth, singleImageHeight)
     }
 }
 
