@@ -3,6 +3,7 @@ package com.cozmicgames.utils.maths
 import com.cozmicgames.utils.collections.Pool
 import kotlin.math.PI
 import kotlin.math.cos
+import kotlin.math.min
 import kotlin.math.sin
 
 class VectorPath : Iterable<Vector2> {
@@ -158,22 +159,73 @@ class VectorPath : Iterable<Vector2> {
         add(x, y + height)
     }
 
-    fun roundedRect(rectangle: Rectangle, rounding: Float, vararg corners: Corner) = roundedRect(rectangle.minX, rectangle.minY, rectangle.width, rectangle.height, rounding, *corners)
+    fun roundedRect(rectangle: Rectangle, roundingRadius: Float, vararg corners: Corner) = roundedRect(rectangle.minX, rectangle.minY, rectangle.width, rectangle.height, roundingRadius, *corners)
 
-    fun roundedRect(x: Float, y: Float, width: Float, height: Float, rounding: Float, vararg corners: Corner) = roundedRect(x, y, width, height, rounding, Corners.combine(*corners))
+    fun roundedRect(x: Float, y: Float, width: Float, height: Float, roundingRadius: Float, vararg corners: Corner) = roundedRect(x, y, width, height, roundingRadius, Corners.combine(*corners))
 
-    fun roundedRect(rectangle: Rectangle, rounding: Float, roundingFlags: Int = Corners.ALL) = roundedRect(rectangle.minX, rectangle.minY, rectangle.width, rectangle.height, rounding, roundingFlags)
+    fun roundedRect(rectangle: Rectangle, roundingRadius: Float, roundingFlags: Int = Corners.ALL) = roundedRect(rectangle.minX, rectangle.minY, rectangle.width, rectangle.height, roundingRadius, roundingFlags)
 
-    fun roundedRect(x: Float, y: Float, width: Float, height: Float, rounding: Float, roundingFlags: Int = Corners.ALL) {
-        val roundingUpperLeft = if (Corners.UPPER_LEFT in roundingFlags) rounding else 0.0f
-        val roundingUpperRight = if (Corners.UPPER_RIGHT in roundingFlags) rounding else 0.0f
-        val roundingLowerLeft = if (Corners.LOWER_LEFT in roundingFlags) rounding else 0.0f
-        val roundingLowerRight = if (Corners.LOWER_RIGHT in roundingFlags) rounding else 0.0f
+    fun roundedRect(x: Float, y: Float, width: Float, height: Float, roundingRadius: Float, roundingFlags: Int = Corners.ALL) {
+        val roundingUpperLeft = if (Corners.UPPER_LEFT in roundingFlags) roundingRadius else 0.0f
+        val roundingUpperRight = if (Corners.UPPER_RIGHT in roundingFlags) roundingRadius else 0.0f
+        val roundingLowerLeft = if (Corners.LOWER_LEFT in roundingFlags) roundingRadius else 0.0f
+        val roundingLowerRight = if (Corners.LOWER_RIGHT in roundingFlags) roundingRadius else 0.0f
 
         arc(x + roundingUpperLeft, y + roundingUpperLeft, roundingUpperLeft, toRadians(180.0f), toRadians(270.0f))
         arc(x + width - roundingUpperRight, y + roundingUpperRight, roundingUpperRight, toRadians(270.0f), toRadians(360.0f))
         arc(x + width - roundingLowerRight, y + height - roundingLowerRight, roundingLowerRight, toRadians(0.0f), toRadians(90.0f))
         arc(x + roundingLowerLeft, y + height - roundingLowerLeft, roundingLowerLeft, toRadians(90.0f), toRadians(180.0f))
+    }
+
+    fun squircle(x: Float, y: Float, width: Float, height: Float, roundingRadius: Float) {
+        val minSide = min(width, height)
+        val radius = min(roundingRadius, minSide * 0.5f)
+
+        val corner0X = x
+        val corner0Y = y
+
+        val corner1X = x + width
+        val corner1Y = y
+
+        val corner2X = x
+        val corner2Y = y + height
+
+        val corner3X = x + width
+        val corner3Y = y + height
+
+        val p0x = x + radius
+        val p0y = y
+
+        val p1x = x + width - radius
+        val p1y = y
+
+        val p2x = x + width
+        val p2y = y + radius
+
+        val p3x = x + width
+        val p3y = y + height - radius
+
+        val p4x = x + width - radius
+        val p4y = y + height
+
+        val p5x = x + radius
+        val p5y = y + height
+
+        val p6x = x
+        val p6y = y + height - radius
+
+        val p7x = x
+        val p7y = y + radius
+
+        add(p0x, p0y)
+        add(p1x, p1y)
+        bezier(p2x, p2y, corner1X, corner1Y, corner1X, corner1Y)
+        add(p3x, p3y)
+        bezier(p4x, p4y, corner3X, corner3Y, corner3X, corner3Y)
+        add(p5x, p5y)
+        bezier(p6x, p6y, corner2X, corner2Y, corner2X, corner2Y)
+        add(p7x, p7y)
+        bezier(p0x, p0y, corner0X, corner0Y, corner0X, corner0Y)
     }
 
     operator fun contains(point: Vector2) = contains(point.x, point.y)
@@ -188,11 +240,8 @@ class VectorPath : Iterable<Vector2> {
         var intersects = 0
 
         repeat(count) {
-            val x0 = points[it].x
-            val y0 = points[it].y
-
-            val x1 = points[if (it + 1 == count) 0 else it + 1].x
-            val y1 = points[if (it + 1 == count) 0 else it + 1].y
+            val (x0, y0) = points[it]
+            val (x1, y1) = points[if (it + 1 == count) 0 else it + 1]
 
             if (((y0 <= y && y < y1) || (y1 <= y && y < y0)) && x < ((x1 - x0) / (y1 - y0) * (y - y0) + x0))
                 intersects++
