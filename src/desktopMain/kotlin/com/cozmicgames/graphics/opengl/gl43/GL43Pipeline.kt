@@ -8,7 +8,6 @@ import com.cozmicgames.graphics.opengl.*
 import com.cozmicgames.log
 import com.cozmicgames.utils.maths.Vector3i
 import org.lwjgl.opengl.GL43C.*
-import org.lwjgl.system.MemoryStack
 import org.lwjgl.system.MemoryStack.stackPush
 
 class GL43Pipeline(override val type: Type) : GLPipeline() {

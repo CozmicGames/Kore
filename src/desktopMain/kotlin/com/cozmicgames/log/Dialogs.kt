@@ -1,15 +1,7 @@
 package com.cozmicgames.log
 
 import org.lwjgl.system.MemoryStack
-import org.lwjgl.system.MemoryUtil
-import org.lwjgl.util.tinyfd.TinyFileDialogs
 import org.lwjgl.util.tinyfd.TinyFileDialogs.*
-import java.io.File
-import java.io.FilenameFilter
-import java.nio.ByteBuffer
-import javax.swing.JFileChooser
-import javax.swing.JOptionPane
-import javax.swing.filechooser.FileFilter
 
 class DesktopDialogs : Dialogs {
     override fun popup(title: String, message: String, type: Dialogs.Type) {

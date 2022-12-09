@@ -15,7 +15,7 @@ actual class TaskManager actual constructor(actual val numThreads: Int) : Dispos
                             isAnyWaiting = true
                             isWaiting[it] = true
                             locks[it].wait()
-                        } catch (e: InterruptedException) {
+                        } catch (_: InterruptedException) {
                         }
                     }
                 }
@@ -102,7 +102,7 @@ actual class TaskManager actual constructor(actual val numThreads: Int) : Dispos
         threads.forEach {
             try {
                 it.join()
-            } catch (e: InterruptedException) {
+            } catch (_: InterruptedException) {
             }
         }
     }

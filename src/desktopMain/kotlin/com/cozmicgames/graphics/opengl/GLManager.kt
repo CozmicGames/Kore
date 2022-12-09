@@ -3,7 +3,6 @@ package com.cozmicgames.graphics.opengl
 import com.cozmicgames.Kore
 import com.cozmicgames.configuration
 import com.cozmicgames.log
-import org.lwjgl.opengl.GL
 import org.lwjgl.opengl.GL43C.*
 
 object GLManager {

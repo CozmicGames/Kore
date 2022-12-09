@@ -151,6 +151,8 @@ open class GLTexture3D(format: Format, private var sampler: Sampler) : Comparabl
         return super.equals(other)
     }
 
+    override fun hashCode() = handle
+
     override fun compareTo(other: Texture): Int {
         return when (other) {
             is GLTexture2D -> other.handle - handle

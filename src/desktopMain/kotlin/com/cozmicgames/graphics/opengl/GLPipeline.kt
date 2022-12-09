@@ -2,11 +2,9 @@ package com.cozmicgames.graphics.opengl
 
 import com.cozmicgames.graphics.DesktopStatistics
 import com.cozmicgames.graphics.gpu.Pipeline
-import com.cozmicgames.graphics.gpu.Texture2D
-import com.cozmicgames.graphics.gpu.TextureUniform
 import com.cozmicgames.graphics.gpu.Uniform
 import com.cozmicgames.utils.Disposable
-import org.lwjgl.opengl.GL32C.*
+import org.lwjgl.opengl.GL32C.glDeleteProgram
 
 abstract class GLPipeline : Pipeline() {
     companion object {

@@ -120,7 +120,7 @@ class Color(r: Float = 0.0f, g: Float = 0.0f, b: Float = 0.0f, a: Float = 0.0f) 
                     values[3] / 255.0f
                 else
                     1.0f
-            } catch (e: Exception) {
+            } catch (_: Exception) {
             }
 
             return color

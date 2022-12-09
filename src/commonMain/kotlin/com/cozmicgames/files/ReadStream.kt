@@ -2,14 +2,9 @@ package com.cozmicgames.files
 
 import com.cozmicgames.Kore
 import com.cozmicgames.files
-import com.cozmicgames.utils.ByteArrayBuilder
 import com.cozmicgames.utils.Charset
 import com.cozmicgames.utils.Charsets
 import com.cozmicgames.utils.Disposable
-import com.cozmicgames.utils.extensions.read16
-import com.cozmicgames.utils.extensions.read32
-import com.cozmicgames.utils.extensions.read8
-import kotlin.math.min
 
 interface ReadStream : Disposable {
     /**

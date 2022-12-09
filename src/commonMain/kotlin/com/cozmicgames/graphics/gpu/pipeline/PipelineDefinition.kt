@@ -1,9 +1,7 @@
 package com.cozmicgames.graphics.gpu.pipeline
 
 import com.cozmicgames.Kore
-import com.cozmicgames.files
 import com.cozmicgames.files.FileHandle
-import com.cozmicgames.files.Files
 import com.cozmicgames.files.readToString
 import com.cozmicgames.graphics
 import com.cozmicgames.graphics.gpu.Pipeline

@@ -291,7 +291,7 @@ abstract class GLGraphicsImpl : GraphicsImpl {
 
         if (color != null) {
             glClearColor(color.r, color.g, color.b, color.a)
-            mask = mask or GL_COLOR_BUFFER_BIT
+            mask = GL_COLOR_BUFFER_BIT
         }
 
         if (depth != null) {
