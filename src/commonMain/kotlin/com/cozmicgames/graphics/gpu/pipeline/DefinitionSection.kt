@@ -102,19 +102,14 @@ class LayoutSection() : DefinitionSection(Type.LAYOUT) {
                     packed {
                         parsePackedSection(packedText, this)
                     }
-                } else if (parts[0].lowercase() == "normalized") {
-                    if (parts.size < 3) {
-                        Kore.log.error(this::class, "Failed to parse layout attribute, normalized attributes must specify their name and type: $line")
-                        continue
-                    }
-
-                    val name = parts[2]
+                } else if (parts.size >= 4 && parts[2].lowercase() == "normalized") {
+                    val name = parts[1]
                     val type = enumValueOf<VertexLayout.AttributeType>(parts[3].uppercase())
                     when {
-                        parts[1].lowercase() == "float" -> float(name, true, type)
-                        parts[1].lowercase() == "vec2" -> vec2(name, true, type)
-                        parts[1].lowercase() == "vec3" -> vec3(name, true, type)
-                        parts[1].lowercase() == "vec4" -> vec4(name, true, type)
+                        parts[0].lowercase() == "float" -> float(name, true, type)
+                        parts[0].lowercase() == "vec2" -> vec2(name, true, type)
+                        parts[0].lowercase() == "vec3" -> vec3(name, true, type)
+                        parts[0].lowercase() == "vec4" -> vec4(name, true, type)
                     }
                 } else {
                     if (parts.size < 2) {
