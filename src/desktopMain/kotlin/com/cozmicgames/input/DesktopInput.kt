@@ -156,6 +156,9 @@ class DesktopInput : InputProcessor, Input, Updateable, Disposable {
     }
 
     override fun update(delta: Float) = lock.write {
+        if ((Kore.graphics as DesktopGraphics).isIconified)
+            return
+
         (Kore.graphics as DesktopGraphics).inputEventQueue.process(this)
 
         workingGamepads.clear()

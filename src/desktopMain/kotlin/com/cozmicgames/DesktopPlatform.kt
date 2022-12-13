@@ -92,15 +92,19 @@ class DesktopPlatform : Platform {
 
             application.onCreate()
 
-            var previousTime = Time.current
+            var isRunning = true
             val processingNextFrameActions = arrayListOf<() -> Unit>()
-
-            running = true
-
-            var frameCounter = 0.0
             var previousFrameTime = Time.current
 
-            fun frame() = durationOf {
+            while (isRunning) {
+                glfwPollEvents()
+
+                if (glfwWindowShouldClose(g.window)) {
+                    isRunning = false
+                    glfwHideWindow(g.window)
+                    Kore.stop()
+                }
+
                 processingNextFrameActions.addAll(nextFrameActions)
                 nextFrameActions.clear()
                 processingNextFrameActions.forEach { it() }
@@ -110,52 +114,31 @@ class DesktopPlatform : Platform {
                 val deltaTime = currentFrameTime - previousFrameTime
                 previousFrameTime = currentFrameTime
 
+                g.beginFrame(deltaTime.toFloat())
+
+                val averageDeltaTime = g.statistics.averageFrameTime
+
                 Kore.context.forEach {
                     if (it is Updateable)
-                        it.update(deltaTime.toFloat())
+                        it.update(averageDeltaTime)
                 }
 
                 frameListeners.forEach {
-                    it(deltaTime.toFloat())
+                    it(averageDeltaTime)
                 }
 
-                g.beginFrame(deltaTime.toFloat())
-                application.onFrame(deltaTime.toFloat())
+                application.onFrame(averageDeltaTime)
+
                 g.endFrame()
                 g.internalFrameIndex++
                 glfwSwapBuffers(g.window)
-            }
 
-            while (running) {
-                glfwPollEvents()
-
-                if (glfwWindowShouldClose(g.window)) {
-                    glfwHideWindow(g.window)
-                    Kore.stop()
-                }
-
-                val currentTime = Time.current
-                frameCounter += currentTime - previousTime
-                previousTime = currentTime
-
-                if (Kore.configuration.framerate <= 0)
-                    frameCounter -= frame()
-                else {
-                    val frameTime = 1.0 / Kore.configuration.framerate
-
-                    if (frameCounter >= frameTime)
-                        while (frameCounter >= frameTime) {
-                            frame()
-                            frameCounter -= frameTime
-                        }
-                    else
-                        Thread.sleep(1)
-                }
+                if (Kore.configuration.framerate > 0)
+                    Sync.sync(Kore.configuration.framerate)
             }
 
             Kore.log.info(this::class, "Closing application")
 
-            g.closeWindow()
             application.onDispose()
 
             Kore.log.info(this::class, "Running shutdown listeners")
@@ -163,6 +146,7 @@ class DesktopPlatform : Platform {
             shutdownListeners.forEach { it() }
 
             Kore.context.dispose()
+            g.disposeWindow()
         } catch (e: Exception) {
             val bytes = buildByteArray {
                 val stream = object : OutputStream() {

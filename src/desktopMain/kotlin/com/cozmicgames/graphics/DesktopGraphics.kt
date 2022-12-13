@@ -32,6 +32,8 @@ class DesktopGraphics : Graphics, Disposable {
 
     internal var window = 0L
 
+    internal var isIconified = false
+
     internal val dropListeners = arrayListOf<DropListener>()
 
     internal val resizeListeners = arrayListOf<ResizeListener>()
@@ -366,7 +368,7 @@ class DesktopGraphics : Graphics, Disposable {
 
         var firstResize = true
         glfwSetFramebufferSizeCallback(window) { _, width, height ->
-            if (!Kore.configuration.fullscreen) {
+            if (!Kore.configuration.fullscreen && width > 0 && height > 0) {
                 this.internalWidth = width
                 this.internalHeight = height
                 if (firstResize)
@@ -382,6 +384,14 @@ class DesktopGraphics : Graphics, Disposable {
 
         glfwSetWindowFocusCallback(window) { _, focused ->
             internalIsFocused = focused
+        }
+
+        glfwSetWindowIconifyCallback(window) { _, iconified ->
+            isIconified = iconified
+            if (iconified)
+                Kore.application.onPause()
+            else
+                Kore.application.onResume()
         }
 
         glfwMakeContextCurrent(window)
@@ -409,7 +419,7 @@ class DesktopGraphics : Graphics, Disposable {
         Kore.log.info(this::class, "Successfully created window")
     }
 
-    internal fun closeWindow() {
+    internal fun disposeWindow() {
         Kore.log.info(this::class, "Closing window")
 
         glfwFreeCallbacks(window)
