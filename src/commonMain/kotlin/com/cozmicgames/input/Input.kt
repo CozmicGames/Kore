@@ -35,11 +35,11 @@ interface Input : Disposable {
     fun isButtonDown(button: MouseButton): Boolean
     fun isButtonJustDown(button: MouseButton): Boolean
     fun isButtonJustUp(button: MouseButton): Boolean
+    fun isTouched(pointer: Int): Boolean
     fun addListener(listener: InputListener)
     fun removeListener(listener: InputListener)
     fun createStandardCursor(type: Cursor.StandardType): Cursor
     fun createCursor(image: Image, xHot: Int, yHot: Int): Cursor
-
 }
 
 fun Input.getGamepad(id: Int) = gamepads.find { it.id == id }

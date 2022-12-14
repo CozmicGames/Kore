@@ -21,6 +21,7 @@ class DesktopInput : InputProcessor, Input, Updateable, Disposable {
     private val gamepadState = GLFWGamepadState.calloc()
     private val listeners = arrayListOf<InputListener>()
     private val workingGamepads = arrayListOf<Gamepad>()
+    private val touchedPointers = hashSetOf<Int>()
 
     private var keys = BooleanArray(Keys.values().size) { false }
     private var keyStates = BooleanArray(Keys.values().size) { false }
@@ -121,6 +122,11 @@ class DesktopInput : InputProcessor, Input, Updateable, Disposable {
 
     override fun onTouch(x: Int, y: Int, button: MouseButton, pointer: Int, down: Boolean, time: Double) {
         buttons[button.ordinal] = down
+
+        if (down)
+            touchedPointers += pointer
+        else
+            touchedPointers -= pointer
 
         listeners.forEach {
             it.onTouch(x, y, pointer, down, time)
@@ -240,6 +246,8 @@ class DesktopInput : InputProcessor, Input, Updateable, Disposable {
     override fun isButtonJustDown(button: MouseButton) = lock.read { buttonsJustDown[button.ordinal] }
 
     override fun isButtonJustUp(button: MouseButton) = lock.read { buttonsJustUp[button.ordinal] }
+
+    override fun isTouched(pointer: Int) = lock.read { pointer in touchedPointers }
 
     override fun createStandardCursor(type: Cursor.StandardType): Cursor {
         return DesktopCursor(
