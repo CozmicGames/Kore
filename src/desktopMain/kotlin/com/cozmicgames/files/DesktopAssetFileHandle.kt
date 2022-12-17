@@ -122,8 +122,15 @@ class DesktopAssetFileHandle(override val fullPath: String) : FileHandle {
         delete()
     }
 
-    override fun openZip(): ZipArchive {
-        return DesktopZipArchive(ZipFile(File(url.toURI())))
+    override fun openZip(): ZipArchive? {
+        if (!exists)
+            return null
+
+        return try {
+            DesktopZipArchive(ZipFile(File(url.toURI())))
+        } catch (_: Exception) {
+            null
+        }
     }
 
     override fun buildZip(): ZipBuilder {

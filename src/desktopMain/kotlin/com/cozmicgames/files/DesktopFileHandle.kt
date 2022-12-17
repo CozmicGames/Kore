@@ -121,8 +121,15 @@ class DesktopFileHandle(fullPath: String, override val type: Files.Type) : FileH
         delete()
     }
 
-    override fun openZip(): ZipArchive {
-        return DesktopZipArchive(ZipFile(file))
+    override fun openZip(): ZipArchive? {
+        if (!exists)
+            return null
+
+        return try {
+            DesktopZipArchive(ZipFile(file))
+        } catch (_: Exception) {
+            null
+        }
     }
 
     override fun buildZip(): ZipBuilder {
