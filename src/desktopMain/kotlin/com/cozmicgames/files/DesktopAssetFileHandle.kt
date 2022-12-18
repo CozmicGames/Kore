@@ -68,7 +68,7 @@ class DesktopAssetFileHandle(override val fullPath: String) : FileHandle {
         if (fullPath.isEmpty())
             Kore.log.fail(this::class, "Cannot get a sibling of the root directory")
 
-        return DesktopAssetFileHandle("${fullPath.directory}$path")
+        return DesktopAssetFileHandle("${fullPath.directory}/$path")
     }
 
     override fun parent(): FileHandle {
