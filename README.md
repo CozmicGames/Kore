@@ -89,13 +89,13 @@ A pipeline definition can be created as such:
     depth less
     colormask true true true true
     depthmask true
-    stencilmask 0xFF //stencil values have to be represented in hey format
+    stencilmask 0xFF //stencil values have to be represented in hex format
     stencil always 0xFF 0xFF keep keep keep
     
     #section layout
     vec3 position
     vec2 texcoords
-    normalized vec4 color byte //This would be a normalized vec4 which components are represented in memory as single bytes
+    vec4 color normalized byte //This would be a normalized vec4 which components are represented in memory as single bytes
     packed { 
     /*
       Supports packed components, unpacking is automatically added, so no need for any boilerplate code
