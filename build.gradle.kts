@@ -41,7 +41,7 @@ kotlin {
             dependencies {
                 val lwjglVersion = "3.3.0"
                 val lwjglNatives = arrayOf("linux", "macos", "windows")
-                val lwjglLibs = arrayOf("glfw", "openal", "opengl", "tinyfd")
+                val lwjglLibs = arrayOf("glfw", "openal", "opengl", "bgfx", "tinyfd")
 
                 implementation("org.lwjgl:lwjgl:$lwjglVersion")
 
