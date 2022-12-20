@@ -132,6 +132,7 @@ class DesktopGraphics : Graphics, Disposable {
 
     fun endFrame() {
         impl.endFrame()
+        glfwSwapBuffers(window)
     }
 
     override fun readImage(file: FileHandle): Image? {

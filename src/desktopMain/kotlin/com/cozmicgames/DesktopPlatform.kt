@@ -131,7 +131,6 @@ class DesktopPlatform : Platform {
 
                 g.endFrame()
                 g.internalFrameIndex++
-                glfwSwapBuffers(g.window)
 
                 if (Kore.configuration.framerate > 0)
                     Sync.sync(Kore.configuration.framerate)
