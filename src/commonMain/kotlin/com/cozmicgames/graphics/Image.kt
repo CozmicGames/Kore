@@ -154,12 +154,14 @@ class Image(val width: Int, val height: Int, val pixels: PixelData = PixelData(w
         else {
             val destColor = this[x, y]
 
-            val oneMinusSrcAlpha = 1.0f - color.a
+            val srcAlpha = color.a
+            val destAlpha = destColor.a - destColor.a * srcAlpha
+            val alpha = destAlpha + srcAlpha
 
-            destColor.r = color.r * color.a + destColor.r * oneMinusSrcAlpha
-            destColor.g = color.g * color.a + destColor.g * oneMinusSrcAlpha
-            destColor.b = color.b * color.a + destColor.b * oneMinusSrcAlpha
-            destColor.a = color.a * color.a + destColor.a * oneMinusSrcAlpha
+            destColor.r = (destColor.r * destAlpha + color.r * srcAlpha) / alpha
+            destColor.g = (destColor.g * destAlpha + color.g * srcAlpha) / alpha
+            destColor.b = (destColor.b * destAlpha + color.b * srcAlpha) / alpha
+            destColor.a = alpha
 
             this[x, y] = destColor
         }
