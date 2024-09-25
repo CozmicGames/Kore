@@ -56,17 +56,19 @@ open class Properties {
 
     data class Value(val name: String, val type: Type, val value: Any, val isArray: Boolean)
 
-    private val values = hashMapOf<String, Value>()
+    private val valuesInternal = hashMapOf<String, Value>()
+
+    val values get() = valuesInternal.values.toList()
 
     private fun setArrayValue(name: String, type: Type, value: Any) {
-        values[name] = Value(name, type, value, true)
+        valuesInternal[name] = Value(name, type, value, true)
     }
 
     private fun setSingleValue(name: String, type: Type, value: Any) {
-        values[name] = Value(name, type, value, false)
+        valuesInternal[name] = Value(name, type, value, false)
     }
 
-    private fun getValue(name: String) = values[name]
+    private fun getValue(name: String) = valuesInternal[name]
 
     operator fun contains(name: String) = getValue(name) != null
 
@@ -152,7 +154,7 @@ open class Properties {
     @Suppress("UNCHECKED_CAST")
     fun write(prettyPrint: Boolean = true): String {
         fun writeProperties(properties: Properties, builder: JsonObjectBuilder) {
-            properties.values.forEach { (_, value) ->
+            properties.valuesInternal.forEach { (_, value) ->
                 builder.putJsonObject(value.name) {
                     put("type", value.type.name)
 
@@ -224,7 +226,7 @@ open class Properties {
     fun read(text: String) {
         fun JsonPrimitive.string() = toString().removeSurrounding("\"")
 
-        values.clear()
+        valuesInternal.clear()
 
         val element = Json.parseToJsonElement(text)
 
@@ -498,15 +500,15 @@ open class Properties {
     }
 
     fun clear() {
-        values.clear()
+        valuesInternal.clear()
     }
 
     fun set(properties: Properties) {
-        values.putAll(properties.values)
+        valuesInternal.putAll(properties.valuesInternal)
     }
 
     override fun hashCode(): Int {
-        return values.values.contentHashCode()
+        return valuesInternal.values.contentHashCode()
     }
 }
 

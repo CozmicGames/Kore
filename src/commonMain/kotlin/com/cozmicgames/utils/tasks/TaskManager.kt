@@ -1,9 +1,10 @@
 package com.cozmicgames.utils.tasks
 
 import com.cozmicgames.utils.Disposable
+import com.cozmicgames.utils.Updateable
 import com.cozmicgames.utils.concurrency.Thread
 
-expect class TaskManager(numThreads: Int = Thread.availableThreads - 1) : Disposable {
+expect class TaskManager(numThreads: Int = Thread.availableThreads - 1) : Disposable, Updateable {
     val numThreads: Int
 
     val hasMoreTasks: Boolean
@@ -11,6 +12,18 @@ expect class TaskManager(numThreads: Int = Thread.availableThreads - 1) : Dispos
     fun submit(task: Task, vararg dependencies: TaskHandle): TaskHandle
 
     fun processTask(): Boolean
+
+    fun schedule(time: Float, isRepeating: Boolean = false, block: () -> Unit): Int
+
+    fun schedule(frames: Int, isRepeating: Boolean = false, block: () -> Unit): Int
+
+    fun scheduleAsync(time: Float, isRepeating: Boolean = false, block: () -> Unit): Int
+
+    fun scheduleAsync(frames: Int, isRepeating: Boolean = false, block: () -> Unit): Int
+
+    override fun update(delta: Float)
+
+    override fun dispose()
 }
 
 fun TaskManager.processTasks(untilCondition: () -> Boolean) {

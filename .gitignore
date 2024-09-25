@@ -1,6 +1,7 @@
 # Project exclude paths
 /.gradle/
 /.idea/
+/.kotlin/
 /build/
 /build/classes/kotlin/desktop/main/
 /build/js/packages/Kore-web/kotlin/
