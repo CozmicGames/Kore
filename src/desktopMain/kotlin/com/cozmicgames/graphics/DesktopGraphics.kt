@@ -295,14 +295,14 @@ class DesktopGraphics : Graphics, Disposable {
         val iconPaths = Kore.configuration.icons
 
         if (iconPaths.isNotEmpty()) {
-            val images = GLFWImage.calloc(iconPaths.size)
-            val buffers = arrayListOf<Long>()
-            repeat(iconPaths.size) {
-                val file = DesktopAssetFileHandle(iconPaths[it])
+            class IconImage(val width: Int, val height: Int, val buffer: Long, val bufferLength: Int)
+
+            val iconImages = arrayListOf<IconImage>()
+
+            iconPaths.forEach {
+                val file = DesktopAssetFileHandle(it)
                 if (file.exists)
                     readImage(file)?.let { image ->
-                        images[it].width(image.width)
-                        images[it].height(image.height)
                         val data = image.pixels.toByteArray()
                         val buffer = nmemAlloc(data.size.toLong())
 
@@ -310,14 +310,23 @@ class DesktopGraphics : Graphics, Disposable {
                             memSet(buffer + index, byte.toInt(), 1)
                         }
 
-                        images[it].pixels(memByteBuffer(buffer, data.size))
-                        buffers += buffer
+                        iconImages += IconImage(image.width, image.height, buffer, data.size)
                     }
+            }
+
+            val images = GLFWImage.calloc(iconImages.size)
+
+            iconImages.forEachIndexed { index, iconImage ->
+                images[index].width(iconImage.width)
+                images[index].height(iconImage.height)
+                images[index].pixels(memByteBuffer(iconImage.buffer, iconImage.bufferLength))
             }
 
             glfwSetWindowIcon(window, images)
             images.free()
-            buffers.forEach { nmemFree(it) }
+            iconImages.forEach {
+                nmemFree(it.buffer)
+            }
         }
 
         glfwSetKeyCallback(window) { _, key, _, action, _ ->

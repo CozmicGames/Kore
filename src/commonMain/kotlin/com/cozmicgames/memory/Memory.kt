@@ -16,7 +16,7 @@ import com.cozmicgames.utils.Disposable
  * @param offset The offset of the memory region.
  * @param isPartition Whether the memory is a partition of another memory region.
  */
-class Memory private constructor(val address: Long, val size: Int, private val offset: Int, val isPartition: Boolean = false) : Disposable {
+class Memory internal constructor(val address: Long, val size: Int, private val offset: Int, val isPartition: Boolean = false) : Disposable {
     /**
      * Allocates a new memory block of the specified size and instantiates this with it.
      */

@@ -1,8 +1,6 @@
 package com.cozmicgames.graphics.gpu.pipeline
 
 import com.cozmicgames.utils.concurrency.concurrentHashMapOf
-import com.cozmicgames.utils.extensions.removeBlankLines
-import com.cozmicgames.utils.extensions.removeComments
 
 object PipelineLibrary {
     private const val STANDARD = """
@@ -198,20 +196,5 @@ object PipelineLibrary {
             "#error Unable to locate include: $name"
         else
             include()
-    }
-
-    fun process(source: String): String {
-        val lines = source.removeComments().removeBlankLines().lines()
-        return buildString {
-            lines.forEach {
-                if (it.removeComments().trim().startsWith("#include")) {
-                    val i0 = it.indexOfAny(charArrayOf('"', '<')) + 1
-                    val i1 = it.indexOfAny(charArrayOf('"', '>'), i0)
-                    val name = it.substring(i0, i1)
-                    appendLine(process(getInclude(name)))
-                } else
-                    appendLine(it)
-            }
-        }
     }
 }

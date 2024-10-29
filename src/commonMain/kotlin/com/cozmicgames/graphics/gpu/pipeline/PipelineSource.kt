@@ -13,7 +13,7 @@ sealed class PipelineStage(val type: StageType) {
 
 class VertexSource(val source: String) : PipelineStage(StageType.VERTEX) {
     override val preprocessedSource
-        get() = PipelineLibrary.process(
+        get() = PipelineSourcePreprocessor.preprocess(
             """
         #define VERTEX
         #include "standard"
@@ -24,7 +24,7 @@ class VertexSource(val source: String) : PipelineStage(StageType.VERTEX) {
 
 class GeometrySource(val source: String) : PipelineStage(StageType.GEOMETRY) {
     override val preprocessedSource
-        get() = PipelineLibrary.process(
+        get() = PipelineSourcePreprocessor.preprocess(
             """
         #define GEOMETRY
         #include "standard"
@@ -35,7 +35,7 @@ class GeometrySource(val source: String) : PipelineStage(StageType.GEOMETRY) {
 
 class FragmentSource(val source: String) : PipelineStage(StageType.FRAGMENT) {
     override val preprocessedSource
-        get() = PipelineLibrary.process(
+        get() = PipelineSourcePreprocessor.preprocess(
             """
         #define FRAGMENT
         #include "standard"
@@ -46,7 +46,7 @@ class FragmentSource(val source: String) : PipelineStage(StageType.FRAGMENT) {
 
 class ComputeSource(val source: String) : PipelineStage(StageType.COMPUTE) {
     override val preprocessedSource
-        get() = PipelineLibrary.process(
+        get() = PipelineSourcePreprocessor.preprocess(
             """
         #define COMPUTE
         #include "standard"

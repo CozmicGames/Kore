@@ -3,7 +3,7 @@ package com.cozmicgames.graphics.opengl
 import com.cozmicgames.graphics.DesktopStatistics
 import com.cozmicgames.graphics.gpu.GraphicsBuffer
 import com.cozmicgames.memory.Memory
-import org.lwjgl.opengl.GL15C.*
+import org.lwjgl.opengl.GL30C.*
 import kotlin.math.min
 
 class GLGraphicsBuffer(usage: Usage) : GraphicsBuffer(usage) {
@@ -51,6 +51,34 @@ class GLGraphicsBuffer(usage: Usage) : GraphicsBuffer(usage) {
     override fun getData(data: Memory, offset: Int, size: Int) {
         tempBind {
             nglGetBufferSubData(GL_ARRAY_BUFFER, offset.toLong(), min(size, this.size).toLong(), data.address)
+        }
+    }
+
+    override fun map(access: MapAccess, offset: Int, size: Int): Memory {
+        var pointer = 0L
+
+        tempBind {
+            pointer = nglMapBufferRange(
+                GL_ARRAY_BUFFER, offset.toLong(), size.toLong(), when (access) {
+                    MapAccess.READ -> GL_MAP_READ_BIT
+                    MapAccess.WRITE -> GL_MAP_WRITE_BIT
+                    MapAccess.READ_WRITE -> GL_MAP_READ_BIT or GL_MAP_WRITE_BIT
+                }
+            )
+        }
+
+        return Memory(pointer, size, 0)
+    }
+
+    override fun flushMappedRange(offset: Int, size: Int) {
+        tempBind {
+            glFlushMappedBufferRange(GL_ARRAY_BUFFER, offset.toLong(), size.toLong())
+        }
+    }
+
+    override fun unmap() {
+        tempBind {
+            glUnmapBuffer(GL_ARRAY_BUFFER)
         }
     }
 
