@@ -1,0 +1,496 @@
+package com.cozmicgames.core.graphics
+
+import com.cozmicgames.core.DropListener
+import com.cozmicgames.core.Kore
+import com.cozmicgames.core.ResizeListener
+import com.cozmicgames.core.application
+import com.cozmicgames.core.configuration
+import com.cozmicgames.core.files.FileHandle
+import com.cozmicgames.core.files.extension
+import com.cozmicgames.core.graphics.rhi.GPUShaderSource
+import com.cozmicgames.core.graphics.rhi.GPUDevice
+import com.cozmicgames.core.graphics.rhi.GPUShader
+import com.cozmicgames.core.input
+import com.cozmicgames.core.log
+import com.cozmicgames.core.files.*
+import com.cozmicgames.core.graphics.rhi.opengl.GLDevice
+import com.cozmicgames.core.icons
+import com.cozmicgames.core.input.DesktopInput
+import com.cozmicgames.core.input.InputEventQueue
+import com.cozmicgames.core.utils.Disposable
+import com.cozmicgames.core.utils.use
+import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
+import org.lwjgl.glfw.GLFW.*
+import org.lwjgl.glfw.GLFWDropCallback
+import org.lwjgl.glfw.GLFWErrorCallback
+import org.lwjgl.glfw.GLFWImage
+import org.lwjgl.opengl.GL
+import org.lwjgl.system.MemoryStack.stackPush
+import org.lwjgl.system.MemoryUtil.*
+import java.awt.image.BufferedImage
+import java.io.OutputStream
+import java.lang.Exception
+import javax.imageio.ImageIO
+
+class DesktopGraphics : Graphics, Disposable {
+    private companion object {
+        const val SHADER_MAGIC_NUMBER = 0x15042510
+        const val SHADER_VERSION = 100
+    }
+
+    private val errorCallback: GLFWErrorCallback
+
+    internal val inputEventQueue = InputEventQueue()
+
+    internal var window = 0L
+
+    internal var isIconified = false
+
+    internal val dropListeners = arrayListOf<DropListener>()
+
+    internal val resizeListeners = arrayListOf<ResizeListener>()
+
+    override val width get() = internalWidth
+
+    override val height get() = internalHeight
+
+    override val isFocused get() = internalIsFocused
+
+    override val frameIndex get() = internalFrameIndex
+
+    override val statistics get() = DesktopStatistics as Statistics
+
+    override val defaultFont: Font = DesktopFont(java.awt.Font("Arial", java.awt.Font.PLAIN, 14))
+
+    override val supportedImageFormats = ImageIO.getReaderFormatNames().asIterable()
+
+    override val supportedFontFormats = arrayOf("ttf").asIterable()
+
+    override var device: GPUDevice
+
+    override val shaderCompiler by lazy { SpirVShaderCompiler(device) }
+
+    private var internalWidth: Int
+        get() = Kore.configuration.width
+        set(value) {
+            Kore.configuration.width = value
+        }
+
+    private var internalHeight: Int
+        get() = Kore.configuration.height
+        set(value) {
+            Kore.configuration.height = value
+        }
+
+    override var isVSync: Boolean
+        get() = Kore.configuration.vsync
+        set(value) {
+            //TODO: Set in swapchain for vulkan
+            glfwSwapInterval(if (value) 1 else 0)
+            Kore.configuration.vsync = value
+        }
+
+    override val clientScale: Float
+        get() {
+            stackPush().use {
+                val pX = it.callocFloat(1)
+                val pY = it.callocFloat(1)
+                glfwGetWindowContentScale(window, pX, pY)
+                return pX.get(0)
+            }
+        }
+
+    override val safeInsetLeft = 0
+    override val safeInsetRight = 0
+    override val safeInsetTop = 0
+    override val safeInsetBottom = 0
+
+    override var title: String
+        get() = Kore.configuration.title
+        set(value) {
+            glfwSetWindowTitle(window, value)
+            Kore.configuration.title = value
+        }
+
+    override val isResizable = true
+
+    private var internalIsFocused = true
+
+    internal var internalFrameIndex = 0
+
+    init {
+        errorCallback = object : GLFWErrorCallback() {
+            override fun invoke(error: Int, description: Long) {
+                Kore.log.fail(this::class, String.format("GLFW error [0x%X]: %s", error, getDescription(description)))
+            }
+        }
+        glfwSetErrorCallback(errorCallback)
+
+        if (!glfwInit())
+            Kore.log.fail(this::class, "Failed to initialize GLFW")
+
+        val vidMode = glfwGetVideoMode(glfwGetPrimaryMonitor())
+
+        //TODO: Select Vulkan or OpenGL based on configuration
+
+        glfwDefaultWindowHints()
+        glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE)
+        glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE)
+
+        glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4)
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6)
+
+        vidMode?.let {
+            glfwWindowHint(GLFW_RED_BITS, it.redBits())
+            glfwWindowHint(GLFW_GREEN_BITS, it.greenBits())
+            glfwWindowHint(GLFW_BLUE_BITS, it.blueBits())
+            glfwWindowHint(GLFW_REFRESH_RATE, it.refreshRate())
+        }
+
+        window = glfwCreateWindow(Kore.configuration.width, Kore.configuration.height, Kore.configuration.title, if (Kore.configuration.fullscreen) glfwGetPrimaryMonitor() else 0L, 0L)
+
+        if (window == 0L)
+            Kore.log.fail(this::class, "Failed to create GLFW window")
+
+        vidMode?.let {
+            glfwSetWindowPos(window, (it.width() - Kore.configuration.width) / 2, (it.height() - Kore.configuration.height) / 2)
+        }
+
+        val iconPaths = Kore.configuration.icons
+
+        if (iconPaths.isNotEmpty()) {
+            class IconImage(val width: Int, val height: Int, val buffer: Long, val bufferLength: Int)
+
+            val iconImages = arrayListOf<IconImage>()
+
+            iconPaths.forEach {
+                val file = DesktopAssetFileHandle(it)
+                if (file.exists)
+                    readImage(file)?.let { image ->
+                        val data = image.pixels.toByteArray()
+                        val buffer = nmemAlloc(data.size.toLong())
+
+                        data.forEachIndexed { index, byte ->
+                            memSet(buffer + index, byte.toInt(), 1)
+                        }
+
+                        iconImages += IconImage(image.width, image.height, buffer, data.size)
+                    }
+            }
+
+            val images = GLFWImage.calloc(iconImages.size)
+
+            iconImages.forEachIndexed { index, iconImage ->
+                images[index].width(iconImage.width)
+                images[index].height(iconImage.height)
+                images[index].pixels(memByteBuffer(iconImage.buffer, iconImage.bufferLength))
+            }
+
+            glfwSetWindowIcon(window, images)
+            images.free()
+            iconImages.forEach {
+                nmemFree(it.buffer)
+            }
+        }
+
+        glfwSetKeyCallback(window) { _, key, _, action, _ ->
+            val down = action != GLFW_RELEASE
+
+            (Kore.input as DesktopInput).getKeyFromCode(key)?.let {
+                if (down)
+                    inputEventQueue.onKeyDown(it, glfwGetTime())
+                else
+                    inputEventQueue.onKeyUp(it, glfwGetTime())
+            }
+        }
+
+        glfwSetCharCallback(window) { _, code ->
+            inputEventQueue.onChar(code.toChar(), glfwGetTime())
+        }
+
+        glfwSetMouseButtonCallback(window) { _, button, action, _ ->
+            val down = action == GLFW_PRESS
+
+            (Kore.input as DesktopInput).getMouseButtonFromCode(button)?.let {
+                if (down)
+                    inputEventQueue.onTouchDown(Kore.input.x, Kore.input.y, 0, it, glfwGetTime())
+                else
+                    inputEventQueue.onTouchUp(Kore.input.x, Kore.input.y, 0, it, glfwGetTime())
+            }
+        }
+
+        glfwSetScrollCallback(window) { _, x, y ->
+            inputEventQueue.onScroll(x.toFloat(), y.toFloat(), glfwGetTime())
+        }
+
+        glfwSetJoystickCallback { id, event ->
+            when (event) {
+                GLFW_CONNECTED -> inputEventQueue.onGamepadConnected(id, glfwGetTime())
+                GLFW_DISCONNECTED -> inputEventQueue.onGamepadDisconnected(id, glfwGetTime())
+            }
+        }
+
+        glfwSetDropCallback(window) { _, count, names ->
+            val array = Array(count) {
+                GLFWDropCallback.getName(names, it)
+            }
+
+            dropListeners.forEach { listener ->
+                listener(array)
+            }
+        }
+
+        var firstResize = true
+        glfwSetFramebufferSizeCallback(window) { _, width, height ->
+            if (!Kore.configuration.fullscreen && width > 0 && height > 0) {
+                this.internalWidth = width
+                this.internalHeight = height
+                if (firstResize)
+                    firstResize = false
+                else {
+                    resizeListeners.forEach {
+                        it(width, height)
+                    }
+                    Kore.application.onResize(width, height)
+                }
+            }
+        }
+
+        glfwSetWindowFocusCallback(window) { _, focused ->
+            internalIsFocused = focused
+        }
+
+        glfwSetWindowIconifyCallback(window) { _, iconified ->
+            isIconified = iconified
+            if (iconified)
+                Kore.application.onPause()
+            else
+                Kore.application.onResume()
+        }
+
+        glfwMakeContextCurrent(window)
+        GL.createCapabilities()
+        glfwSwapInterval(if (Kore.configuration.vsync) 1 else 0)
+        device = GLDevice(Kore.configuration.debug)
+
+        glfwShowWindow(window)
+
+        Kore.log.info(this::class, "Created window")
+    }
+
+    fun beginFrame(delta: Float) {
+        DesktopStatistics.newFrame(delta)
+    }
+
+    fun endFrame() {
+        glfwSwapBuffers(window)
+    }
+
+    override fun readImage(file: FileHandle): Image? {
+        if (file.extension.lowercase() !in supportedImageFormats) {
+            Kore.log.error(this::class, "Unsupported image format: $file.extension")
+            return null
+        }
+
+        val bufferedImage = file.read().use {
+            try {
+                ImageIO.read((it as DesktopReadStream).stream)
+            } catch (e: Exception) {
+                Kore.log.error(this::class, "Unable to read image data: ${e.message}")
+                return null
+            }
+        }
+
+        val image = Image(bufferedImage.width, bufferedImage.height)
+
+        repeat(bufferedImage.height) { y ->
+            repeat(bufferedImage.width) { x ->
+                val color = bufferedImage.getRGB(x, y)
+
+                val a = ((color ushr 24) and 0xFF).toFloat() / 0xFF
+                val r = ((color ushr 16) and 0xFF).toFloat() / 0xFF
+                val g = ((color ushr 8) and 0xFF).toFloat() / 0xFF
+                val b = (color and 0xFF).toFloat() / 0xFF
+
+                image.pixels.data[image.getPixelsIndex(x, y)].set(r, g, b, a)
+            }
+        }
+
+        return image
+    }
+
+    override fun writeImage(file: FileHandle, image: Image) {
+        val format = file.extension.lowercase()
+
+        if (format !in supportedImageFormats) {
+            Kore.log.error(this::class, "Unsupported image format: ${file.extension}")
+            return
+        }
+
+        val bufferedImage = BufferedImage(image.width, image.height, BufferedImage.TYPE_INT_ARGB)
+
+        repeat(image.height) { y ->
+            repeat(image.width) { x ->
+                val color = image[x, y]
+                val r = (color.r * 0xFF).toInt() and 0xFF
+                val g = (color.g * 0xFF).toInt() and 0xFF
+                val b = (color.b * 0xFF).toInt() and 0xFF
+                val a = (color.a * 0xFF).toInt() and 0xFF
+
+                bufferedImage.setRGB(x, y, (a shl 24) or (r shl 16) or (g shl 8) or b)
+            }
+        }
+
+        val stream = file.write(false)
+
+        val wrappedOutputStream = object : OutputStream() {
+            override fun write(b: Int) {
+                stream.writeByte((b and 0xFF).toByte())
+            }
+        }
+
+        try {
+            ImageIO.write(bufferedImage, format, wrappedOutputStream)
+        } finally {
+            wrappedOutputStream.close()
+            stream.dispose()
+        }
+    }
+
+    override fun readFont(file: FileHandle): Font? {
+        if (file.extension.lowercase() !in supportedFontFormats) {
+            Kore.log.error(this::class, "Unsupported font format: ${file.extension}")
+            return null
+        }
+
+        val awtFont = file.read().use {
+            java.awt.Font.createFont(java.awt.Font.TRUETYPE_FONT, (it as DesktopReadStream).stream)
+        }
+
+        if (awtFont == null) {
+            Kore.log.error(this::class, "Unable to read font data")
+            return null
+        }
+
+        return DesktopFont(awtFont)
+    }
+
+    override fun readShaderSource(file: FileHandle): GPUShaderSource? {
+        val stream = file.read()
+        return try {
+            val magic = stream.readInt()
+
+            if (magic != SHADER_MAGIC_NUMBER) {
+                Kore.log.error(this::class, "Invalid shader file")
+                return null
+            }
+
+            val version = stream.readInt()
+
+            if (version != SHADER_VERSION) {
+                Kore.log.error(this::class, "Unsupported shader version: $version")
+                return null
+            }
+
+            val typeOrdinal = stream.readInt()
+            val type = GPUShaderSource.Type.entries.getOrNull(typeOrdinal) ?: run {
+                Kore.log.error(this::class, "Invalid shader type: $typeOrdinal")
+                return null
+            }
+
+            val resources = arrayListOf<GPUShader.Resource>()
+
+            val resourceCount = stream.readInt()
+            repeat(resourceCount) {
+                val name = stream.readString()
+                val typeOrdinal = stream.readInt()
+                val type = GPUShader.ResourceType.entries.getOrNull(typeOrdinal) ?: run {
+                    Kore.log.error(this::class, "Invalid resource type: $typeOrdinal")
+                    return null
+                }
+                val binding = stream.readInt()
+                resources += GPUShader.Resource(name, type, binding)
+            }
+
+            class StageInfo(val stage: GLSLShaderProcessor.StageType, val size: Int)
+
+            val stageCount = stream.readInt()
+            val stageInfos = Array(stageCount) {
+                val stage = GLSLShaderProcessor.StageType.entries[stream.readInt()]
+                val size = stream.readInt()
+                StageInfo(stage, size)
+            }
+
+            val stages = hashMapOf<GLSLShaderProcessor.StageType, ByteArray>()
+
+            stageInfos.forEach {
+                val data = ByteArray(it.size)
+                stream.readBytes(it.size, data)
+                stages[it.stage] = data
+            }
+
+            SpirVCompiledShader(type, resources, stages)
+        } catch (_: Exception) {
+            Kore.log.error(this::class, "Error reading shader file")
+            null
+        } finally {
+            stream.dispose()
+        }
+    }
+
+    override fun writeShaderSource(file: FileHandle, shaderSource: GPUShaderSource) {
+        (shaderSource as? SpirVCompiledShader) ?: run {
+            Kore.log.error(this::class, "Unsupported shader type: ${shaderSource::class}")
+            return
+        }
+
+        val stream = file.write(false)
+
+        try {
+            stream.writeInt(SHADER_MAGIC_NUMBER)
+            stream.writeInt(SHADER_VERSION)
+            stream.writeInt(shaderSource.type.ordinal)
+
+            val resources = shaderSource.resources
+            stream.writeInt(resources.size)
+            resources.forEach { resource ->
+                stream.writeString(resource.name)
+                stream.writeInt(resource.type.ordinal)
+                stream.writeInt(resource.binding)
+            }
+
+            val stages = shaderSource.data
+            stream.writeInt(stages.size)
+            stages.forEach { (stage, data) ->
+                stream.writeInt(stage.ordinal)
+                stream.writeInt(data.size)
+            }
+
+            stages.forEach { (_, data) ->
+                stream.writeBytes(data)
+            }
+        } catch (_: Exception) {
+            Kore.log.error(this::class, "Error writing shader file")
+        } finally {
+            stream.dispose()
+        }
+    }
+
+    internal fun disposeWindow() {
+        Kore.log.info(this::class, "Closing window")
+
+        device.dispose()
+
+        glfwFreeCallbacks(window)
+        glfwDestroyWindow(window)
+        window = 0L
+
+        glfwTerminate()
+        glfwSetErrorCallback(null)
+        errorCallback.free()
+    }
+
+    override fun dispose() {
+    }
+}

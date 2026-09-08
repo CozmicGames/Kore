@@ -1,0 +1,143 @@
+package com.cozmicgames.core.files
+
+import com.cozmicgames.core.Kore
+import com.cozmicgames.core.files.FileHandle
+import com.cozmicgames.core.files.Files
+import com.cozmicgames.core.files.ReadStream
+import com.cozmicgames.core.files.WriteStream
+import com.cozmicgames.core.files.ZipArchive
+import com.cozmicgames.core.files.ZipBuilder
+import com.cozmicgames.core.files.isDirectory
+import com.cozmicgames.core.files.nameWithExtension
+import com.cozmicgames.core.files.readAllBytes
+import com.cozmicgames.core.log
+import com.cozmicgames.core.utils.extensions.directory
+import java.io.*
+import java.util.concurrent.TimeUnit
+import java.util.zip.ZipEntry
+import java.util.zip.ZipFile
+
+class DesktopZipFileHandle(private val zipFile: ZipFile, private val entry: ZipEntry) : FileHandle {
+    override val fullPath get() = entry.name.replace("\\", "/")
+
+    override val type get() = Files.Type.ZIP
+
+    override val exists get() = true
+
+    override val isWritable get() = false
+
+    override val size get() = entry.size
+
+    override val lastModified get() = entry.lastModifiedTime.to(TimeUnit.MILLISECONDS)
+
+    override fun list(block: (String) -> Unit) {
+        zipFile.stream().forEach {
+            if (it.name.startsWith(fullPath)) {
+                block(it.name.removePrefix(fullPath).removeSuffix("/"))
+            }
+        }
+    }
+
+    override fun delete() {
+        Kore.log.fail(this::class, "Cannot delete $fullPath, it is a zip file")
+    }
+
+    override fun read(): ReadStream {
+        return DesktopReadStream(BufferedInputStream(zipFile.getInputStream(entry)))
+    }
+
+    override fun write(append: Boolean): WriteStream {
+        Kore.log.fail(this::class, "Cannot write to $fullPath, it is a zip file")
+        throw UnsupportedOperationException()
+    }
+
+    override fun child(path: String): FileHandle {
+        if (fullPath.isEmpty())
+            return DesktopZipFileHandle(zipFile, zipFile.getEntry(path))
+
+        return DesktopZipFileHandle(zipFile, zipFile.getEntry("$fullPath/$path"))
+    }
+
+    override fun sibling(path: String): FileHandle {
+        if (fullPath.isEmpty())
+            Kore.log.fail(this::class, "Cannot get a sibling of the root directory")
+
+        return DesktopZipFileHandle(zipFile, zipFile.getEntry("${fullPath.directory}/$path"))
+    }
+
+    override fun parent(): FileHandle {
+        var parent = fullPath.directory
+        if (parent.isEmpty())
+            parent = "/"
+
+        return DesktopZipFileHandle(zipFile, zipFile.getEntry(parent))
+    }
+
+    override fun copyTo(file: FileHandle) {
+        fun copyFile(source: FileHandle, dest: FileHandle) {
+            val sourceStream = source.read()
+            val destStream = dest.write(false)
+            destStream.writeBytes(sourceStream.readAllBytes())
+            sourceStream.dispose()
+            destStream.dispose()
+        }
+
+        fun copyDirectory(source: FileHandle, dest: FileHandle) {
+            source.list {
+                val sourceChild = source.child(it)
+                val destChild = dest.child(it)
+
+                if (sourceChild.isDirectory)
+                    copyDirectory(sourceChild, destChild)
+                else
+                    copyFile(sourceChild, destChild)
+            }
+        }
+
+        var dest = file
+
+        if (!isDirectory) {
+            if (dest.isDirectory)
+                dest = dest.child(nameWithExtension)
+            copyFile(this, dest)
+            return
+        }
+
+        if (dest.exists) {
+            if (!dest.isDirectory)
+                Kore.log.fail(this::class, "Cannot copy to $dest, it is not a directory")
+        }
+
+        copyDirectory(this, dest.child(nameWithExtension))
+    }
+
+    override fun moveTo(file: FileHandle) {
+        Kore.log.fail(this::class, "Cannot move $fullPath, it is a zip file")
+        throw UnsupportedOperationException()
+    }
+
+    override fun openZip(): ZipArchive {
+        Kore.log.fail(this::class, "Cannot open $fullPath as a nested zip archive")
+        throw UnsupportedOperationException()
+    }
+
+    override fun buildZip(): ZipBuilder {
+        Kore.log.fail(this::class, "Cannot write to $fullPath, it is a zip file")
+        throw UnsupportedOperationException()
+    }
+
+    override fun toString(): String {
+        return "FileHandle($fullPath, $type)"
+    }
+
+    override fun hashCode(): Int {
+        return fullPath.hashCode() + type.hashCode()
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (other !is FileHandle)
+            return false
+
+        return other.fullPath == fullPath && other.type == type
+    }
+}

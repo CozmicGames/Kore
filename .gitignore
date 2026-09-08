@@ -1,0 +1,7 @@
+# Project exclude paths
+/.gradle/
+/build/
+/build/classes/kotlin/desktop/main/
+/.idea/
+/.kotlin/
+log.txt
