@@ -9,7 +9,7 @@ import org.lwjgl.system.MemoryStack.*
 import org.lwjgl.system.MemoryUtil
 import java.nio.IntBuffer
 
-class GLProgram(private val device: GLDevice, shader: GPUShaderSource) : GPUShader {
+class GLProgram(device: GLDevice, shader: GPUShaderSource) : GPUShader {
     override val resources: List<GPUShader.Resource>
 
     val handle get() = handleInternal

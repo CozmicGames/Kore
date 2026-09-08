@@ -3,8 +3,6 @@ package com.cozmicgames.core.utils.tasks
 import com.cozmicgames.core.utils.Disposable
 import com.cozmicgames.core.utils.IDGenerator
 import com.cozmicgames.core.utils.Updateable
-import com.cozmicgames.core.utils.tasks.Task
-import com.cozmicgames.core.utils.tasks.TaskHandle
 
 actual class TaskManager actual constructor(actual val numThreads: Int) : Disposable, Updateable {
     private sealed class ScheduledTask(val id: Int)

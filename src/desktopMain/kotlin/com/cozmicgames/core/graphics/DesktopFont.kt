@@ -1,7 +1,5 @@
 package com.cozmicgames.core.graphics
 
-import com.cozmicgames.core.graphics.Font
-import com.cozmicgames.core.graphics.Image
 import java.awt.Color
 import java.awt.Graphics2D
 import java.awt.RenderingHints

@@ -1,6 +1,5 @@
 package com.cozmicgames.core.log
 
-import com.cozmicgames.core.log.Log
 import com.cozmicgames.core.utils.Reflection
 import java.io.*
 import java.text.SimpleDateFormat

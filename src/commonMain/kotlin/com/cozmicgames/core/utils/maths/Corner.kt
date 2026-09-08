@@ -12,7 +12,7 @@ enum class Corners : Corner {
 
     companion object {
         const val NONE = 0
-        val ALL = combine(*values())
+        val ALL = combine(*Corners.entries.toTypedArray())
 
         fun combine(vararg corners: Corner): Int {
             var flags = 0

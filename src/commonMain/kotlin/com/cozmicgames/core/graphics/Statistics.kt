@@ -47,22 +47,22 @@ interface Statistics {
     val numComputeDispatches: Int
 
     /**
-     * The number of active (created and not yet disposed) [GraphicsBuffer]s.
+     * The number of active (created and not yet disposed) [com.cozmicgames.core.graphics.rhi.GPUBuffer]s.
      */
     val numBuffers: Int
 
     /**
-     * The number of active (created and not yet disposed) [Framebuffer]s.
+     * The number of active (created and not yet disposed) [com.cozmicgames.core.graphics.rhi.GPURenderPass]es.
      */
     val numRenderPasses: Int
 
     /**
-     * The number of active (created and not yet disposed) [Pipeline]s.
+     * The number of active (created and not yet disposed) [com.cozmicgames.core.graphics.rhi.GPUPipeline]s.
      */
     val numPipelines: Int
 
     /**
-     * The number of active (created and not yet disposed) [Texture]s.
+     * The number of active (created and not yet disposed) [com.cozmicgames.core.graphics.rhi.GPUTexture]s.
      */
     val numTextures: Int
 }

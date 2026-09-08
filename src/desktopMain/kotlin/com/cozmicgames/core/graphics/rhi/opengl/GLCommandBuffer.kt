@@ -1,7 +1,5 @@
 package com.cozmicgames.core.graphics.rhi.opengl
 
-import com.cozmicgames.core.Kore
-import com.cozmicgames.core.graphics
 import com.cozmicgames.core.graphics.rhi.GPUBuffer
 import com.cozmicgames.core.graphics.rhi.GPUCommandBuffer
 import com.cozmicgames.core.graphics.rhi.GPUGraphicsPipeline

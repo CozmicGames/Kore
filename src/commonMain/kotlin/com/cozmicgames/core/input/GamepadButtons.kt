@@ -22,7 +22,7 @@ enum class GamepadButtons : GamepadButton {
     DPAD_LEFT;
 
     companion object {
-        val values = values()
+        val values = GamepadButtons.entries.toTypedArray()
 
         val count get() = values.size
 

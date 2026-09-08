@@ -1,9 +1,5 @@
 package com.cozmicgames.core.input
 
-import com.cozmicgames.core.input.Key
-import com.cozmicgames.core.input.Keys
-import com.cozmicgames.core.input.MouseButton
-import com.cozmicgames.core.input.MouseButtons
 import com.cozmicgames.core.utils.concurrency.Lock
 
 class InputEventQueue {
@@ -18,7 +14,7 @@ class InputEventQueue {
         GAMEPAD_DISCONNECTED(1);
 
         companion object {
-            val values = values()
+            val values = Type.entries.toTypedArray()
 
             fun fromInt(value: Int): Type {
                 return values[value]

@@ -1,6 +1,5 @@
 package com.cozmicgames.core
 
-import com.cozmicgames.core.utils.Color
 import com.cozmicgames.core.utils.Properties
 import com.cozmicgames.core.utils.boolean
 import com.cozmicgames.core.utils.int

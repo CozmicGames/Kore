@@ -20,7 +20,6 @@ import java.nio.ByteBuffer
 import java.util.Collections.emptyList
 import kotlin.math.max
 import kotlin.math.min
-import kotlin.streams.toList
 
 
 object VulkanUtils {

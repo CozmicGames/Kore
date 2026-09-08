@@ -10,7 +10,7 @@ enum class MouseButtons : MouseButton {
     RIGHT;
 
     companion object {
-        val values = values()
+        val values = MouseButtons.entries.toTypedArray()
 
         val count get() = values.size
 

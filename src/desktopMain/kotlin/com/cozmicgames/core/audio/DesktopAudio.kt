@@ -1,6 +1,5 @@
 package com.cozmicgames.core.audio
 
-import com.cozmicgames.*
 import com.cozmicgames.core.audio.formats.MP3
 import com.cozmicgames.core.audio.formats.WAV
 import com.cozmicgames.core.Kore

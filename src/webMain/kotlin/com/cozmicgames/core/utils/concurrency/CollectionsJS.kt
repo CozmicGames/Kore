@@ -1,7 +1,5 @@
 package com.cozmicgames.core.utils.concurrency
 
-import com.cozmicgames.core.utils.concurrency.Queue
-
 actual interface Queue<T> {
     actual fun add(element: T): Boolean
     actual fun remove(): T

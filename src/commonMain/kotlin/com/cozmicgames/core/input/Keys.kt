@@ -127,7 +127,7 @@ enum class Keys(override val isDisplayable: Boolean = false, override val char: 
     KEY_F12;
 
     companion object {
-        val values = values()
+        val values = Keys.entries.toTypedArray()
 
         val count get() = values.size
 
