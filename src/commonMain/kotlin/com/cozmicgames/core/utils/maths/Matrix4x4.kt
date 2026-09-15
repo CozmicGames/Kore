@@ -194,10 +194,10 @@ class Matrix4x4 : Resettable {
         setIdentity()
         m00 = 2.0f / (right - left)
         m11 = 2.0f / (top - bottom)
-        m22 = (if (Kore.graphics.device.info.zZeroToOne) 1.0f else 2.0f) / (zFar - zNear)
+        m22 = (if (Kore.graphics.activeDevice?.info?.zZeroToOne ?: false) 1.0f else 2.0f) / (zFar - zNear)
         m30 = (right + left) / (left - right)
         m31 = (top + bottom) / (bottom - top)
-        m32 = (if (Kore.graphics.device.info.zZeroToOne) zNear else zFar + zNear) / (zNear - zFar)
+        m32 = (if (Kore.graphics.activeDevice?.info?.zZeroToOne ?: false) zNear else zFar + zNear) / (zNear - zFar)
         return this
     }
 
@@ -212,14 +212,14 @@ class Matrix4x4 : Resettable {
         if (farInf) {
             e = 1.0E-6f
             m22 = 1.0f - e
-            m32 = (e - if (Kore.graphics.device.info.zZeroToOne) 1.0f else 2.0f) * zNear
+            m32 = (e - if (Kore.graphics.activeDevice?.info?.zZeroToOne ?: false) 1.0f else 2.0f) * zNear
         } else if (nearInf) {
             e = 1.0E-6f
-            m22 = (if (Kore.graphics.device.info.zZeroToOne) 0.0f else 1.0f) - e
-            m32 = ((if (Kore.graphics.device.info.zZeroToOne) 1.0f else 2.0f) - e) * zFar
+            m22 = (if (Kore.graphics.activeDevice?.info?.zZeroToOne ?: false) 0.0f else 1.0f) - e
+            m32 = ((if (Kore.graphics.activeDevice?.info?.zZeroToOne ?: false) 1.0f else 2.0f) - e) * zFar
         } else {
-            m22 = (if (Kore.graphics.device.info.zZeroToOne) zFar else zFar + zNear) / (zFar - zNear)
-            m32 = (if (Kore.graphics.device.info.zZeroToOne) zFar else zFar + zFar) * zNear / (zNear - zFar)
+            m22 = (if (Kore.graphics.activeDevice?.info?.zZeroToOne ?: false) zFar else zFar + zNear) / (zFar - zNear)
+            m32 = (if (Kore.graphics.activeDevice?.info?.zZeroToOne ?: false) zFar else zFar + zFar) * zNear / (zNear - zFar)
         }
 
         m23 = 1.0f

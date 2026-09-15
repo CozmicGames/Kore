@@ -60,15 +60,14 @@ class DesktopGraphics : Graphics, Disposable {
 
     override val statistics get() = DesktopStatistics as Statistics
 
+    override var activeDevice: GPUDevice? = null
+        private set
+
     override val defaultFont: Font = DesktopFont(java.awt.Font("Arial", java.awt.Font.PLAIN, 14))
 
     override val supportedImageFormats = ImageIO.getReaderFormatNames().asIterable()
 
     override val supportedFontFormats = arrayOf("ttf").asIterable()
-
-    override var device: GPUDevice
-
-    override val shaderCompiler by lazy { SpirVShaderCompiler(device) }
 
     private var internalWidth: Int
         get() = Kore.configuration.width
@@ -272,8 +271,6 @@ class DesktopGraphics : Graphics, Disposable {
         glfwMakeContextCurrent(window)
         GL.createCapabilities()
         glfwSwapInterval(if (Kore.configuration.vsync) 1 else 0)
-        device = GLDevice(Kore.configuration.debug)
-
         glfwShowWindow(window)
 
         Kore.log.info(this::class, "Created window")
@@ -477,10 +474,21 @@ class DesktopGraphics : Graphics, Disposable {
         }
     }
 
+    override fun createShaderCompiler(debug: Boolean): ShaderCompiler {
+        return SpirVShaderCompiler(debug)
+    }
+
+    override fun createDevice(debug: Boolean): GPUDevice {
+        return GLDevice(debug) //TODO: Device selection
+    }
+
+    override fun setActiveDevice(device: GPUDevice) {
+        activeDevice = device
+        //TODO: Actually do something, not necessary for OpenGL, but might be in the future
+    }
+
     internal fun disposeWindow() {
         Kore.log.info(this::class, "Closing window")
-
-        device.dispose()
 
         glfwFreeCallbacks(window)
         glfwDestroyWindow(window)

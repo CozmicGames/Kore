@@ -1,9 +1,25 @@
 package com.cozmicgames.core.graphics
 
 import com.cozmicgames.core.Kore
+import com.cozmicgames.core.configuration
 import com.cozmicgames.core.graphics.rhi.GPUShaderSource
 import com.cozmicgames.core.graphics.rhi.GPUDevice
 import com.cozmicgames.core.files.FileHandle
+import com.cozmicgames.core.graphics
+import com.cozmicgames.core.graphics.rhi.GPUCommandBuffer
+import com.cozmicgames.core.graphics.rhi.GPUComputePipeline
+import com.cozmicgames.core.graphics.rhi.GPUDevice.DebugHandler
+import com.cozmicgames.core.graphics.rhi.GPUDynamicBuffer
+import com.cozmicgames.core.graphics.rhi.GPUGraphicsPipeline
+import com.cozmicgames.core.graphics.rhi.GPURenderPass
+import com.cozmicgames.core.graphics.rhi.GPUSampler
+import com.cozmicgames.core.graphics.rhi.GPUShader
+import com.cozmicgames.core.graphics.rhi.GPUStaticBuffer
+import com.cozmicgames.core.graphics.rhi.GPUTexture1D
+import com.cozmicgames.core.graphics.rhi.GPUTexture2D
+import com.cozmicgames.core.graphics.rhi.GPUTexture3D
+import com.cozmicgames.core.graphics.rhi.GPUTextureCube
+import com.cozmicgames.core.graphics.rhi.GPUTextureFormat
 import com.cozmicgames.core.utils.maths.Rectangle
 
 /**
@@ -74,6 +90,11 @@ interface Graphics {
     val frameIndex: Int
 
     /**
+     * The active [GPUDevice]
+     */
+    val activeDevice: GPUDevice?
+
+    /**
      * The frameworks graphics statistics.
      */
     val statistics: Statistics
@@ -92,16 +113,6 @@ interface Graphics {
      * The formats supported for loading fonts.
      */
     val supportedFontFormats: Iterable<String>
-
-    /**
-     * The GPU device used by the framework.
-     */
-    val device: GPUDevice
-
-    /**
-     * The shader compiler used by the framework.
-     */
-    val shaderCompiler: ShaderCompiler
 
     /**
      * Reads an image from the given [file].
@@ -145,6 +156,24 @@ interface Graphics {
      * @param shaderSource The shader to write.
      */
     fun writeShaderSource(file: FileHandle, shaderSource: GPUShaderSource)
+
+    /**
+     * Creates a new ShaderCompiler.
+     * Does not need a GPUDevice instance to be in active use.
+     */
+    fun createShaderCompiler(debug: Boolean = Kore.configuration.debug): ShaderCompiler
+
+    /**
+     * Creates a new GPUDevice, capable of rendering.
+     * Only one GPUDevice
+     */
+    fun createDevice(debug: Boolean = Kore.configuration.debug): GPUDevice //TODO: Add device selection info
+
+    /**
+     * Sets the specified device to be active, i.e. to use this device for rendering to the window.
+     * Only one device can be active at a time.
+     */
+    fun setActiveDevice(device: GPUDevice)
 }
 
 /**

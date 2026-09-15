@@ -83,5 +83,4 @@ kotlin {
         }
         val webMain by getting
     }
-    jvmToolchain(11)
 }

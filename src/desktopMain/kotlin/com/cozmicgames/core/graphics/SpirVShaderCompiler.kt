@@ -5,7 +5,7 @@ import com.cozmicgames.core.graphics.rhi.GPUDevice
 import org.lwjgl.system.MemoryUtil
 import org.lwjgl.util.shaderc.Shaderc.*
 
-class SpirVShaderCompiler(private val device: GPUDevice) : ShaderCompiler {
+class SpirVShaderCompiler(debug: Boolean) : ShaderCompiler {
     private val compiler = shaderc_compiler_initialize()
     private val options = shaderc_compile_options_initialize()
 
@@ -18,6 +18,9 @@ class SpirVShaderCompiler(private val device: GPUDevice) : ShaderCompiler {
         }
 
         shaderc_compile_options_set_target_env(options, shaderc_target_env_vulkan, shaderc_env_version_vulkan_1_3)
+
+        if (debug)
+            shaderc_compile_options_set_generate_debug_info(options)
     }
 
     private fun compileShader(stage: GLSLShaderProcessor.Stage): Result<ByteArray> {

@@ -22,11 +22,15 @@ fun main() {
 
         private var t = 0.0f
 
+        private lateinit var d: GPUDevice
         private lateinit var p: GPUGraphicsPipeline
         private lateinit var b: GPUStaticBuffer
 
         override fun onCreate() {
-            Kore.graphics.device.debugHandler = object : GPUDevice.DebugHandler {
+            d = Kore.graphics.createDevice(true)
+            Kore.graphics.setActiveDevice(d)
+
+            d.debugHandler = object : GPUDevice.DebugHandler {
                 override fun onDebugMessage(severity: GPUDevice.DebugHandler.Severity, message: String) {
                     println("[$severity] $message")
                 }
@@ -54,9 +58,12 @@ fun main() {
                 
             """.trimIndent()
 
-            val ss = Kore.graphics.shaderCompiler.compile(shader).getOrThrow()
-            val s = Kore.graphics.device.createShader(ss)
-            p = Kore.graphics.device.createGraphicsPipeline {
+            val sc = Kore.graphics.createShaderCompiler(true)
+            val ss = sc.compile(shader).getOrThrow()
+            sc.dispose()
+
+            val s = d.createShader(ss)
+            p = d.createGraphicsPipeline {
                 setShader(s)
                 setCullState {
                     front = false
@@ -70,7 +77,7 @@ fun main() {
                 0.0f, 0.5f, 0.0f, 1.0f
             )
 
-            b = Kore.graphics.device.createStaticBuffer()
+            b = d.createStaticBuffer()
             b.setSize(m.size)
             b.setData(m)
 
@@ -88,7 +95,7 @@ fun main() {
                 t = 0.0f
             }
 
-            val cmd = Kore.graphics.device.beginFrame()
+            val cmd = d.beginFrame()
             cmd.beginMainRenderPass(Color.LIME, 1.0f)
             cmd.setViewport(0, 0, Kore.graphics.width, Kore.graphics.height)
             cmd.setPipeline(p)
@@ -96,7 +103,7 @@ fun main() {
             cmd.draw(Primitive.TRIANGLES, 3)
 
             cmd.endMainRenderPass()
-            Kore.graphics.device.endFrame()
+            d.endFrame()
         }
     }, configuration {
         framerate = 0

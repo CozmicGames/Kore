@@ -1,6 +1,5 @@
 package com.cozmicgames.core.graphics.rhi.opengl
 
-import com.cozmicgames.core.graphics.SpirVShaderCompiler
 import com.cozmicgames.core.graphics.rhi.GPUCommandBuffer
 import com.cozmicgames.core.graphics.rhi.GPUShaderSource
 import com.cozmicgames.core.graphics.rhi.GPUComputePipeline
@@ -89,7 +88,6 @@ class GLDevice(override val isDebug: Boolean) : GPUDevice {
     override var debugHandler: GPUDevice.DebugHandler? = null
 
     internal var usedMemoryInternal = 0L
-    internal val shaderCompiler = SpirVShaderCompiler(this)
 
     private val placeboVao: Int
     private val commandBuffer = GLCommandBuffer()
@@ -191,6 +189,5 @@ class GLDevice(override val isDebug: Boolean) : GPUDevice {
 
     override fun dispose() {
         glDeleteVertexArrays(placeboVao)
-        shaderCompiler.dispose()
     }
 }
