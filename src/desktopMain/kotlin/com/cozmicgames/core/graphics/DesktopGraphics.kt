@@ -18,6 +18,7 @@ import com.cozmicgames.core.icons
 import com.cozmicgames.core.input.DesktopInput
 import com.cozmicgames.core.input.InputEventQueue
 import com.cozmicgames.core.utils.Disposable
+import com.cozmicgames.core.utils.Updateable
 import com.cozmicgames.core.utils.use
 import org.lwjgl.glfw.Callbacks.glfwFreeCallbacks
 import org.lwjgl.glfw.GLFW.*
