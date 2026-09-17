@@ -10,6 +10,9 @@ sealed interface GPUBuffer : Disposable {
     }
 
     val type: Type
+    val size: Int
+
+    fun setSize(size: Int)
 }
 
 /**
@@ -18,7 +21,6 @@ sealed interface GPUBuffer : Disposable {
 abstract class GPUDynamicBuffer : GPUBuffer {
     final override val type get() = GPUBuffer.Type.DYNAMIC
 
-    abstract fun setSize(size: Int)
     abstract fun updateData(block: (Memory) -> Unit)
 }
 
@@ -28,6 +30,5 @@ abstract class GPUDynamicBuffer : GPUBuffer {
 abstract class GPUStaticBuffer : GPUBuffer {
     final override val type get() = GPUBuffer.Type.STATIC
 
-    abstract fun setSize(size: Int)
     abstract fun setData(memory: Memory, sourceOffset: Int = 0, destOffset: Int = 0, size: Int = memory.size - sourceOffset)
 }

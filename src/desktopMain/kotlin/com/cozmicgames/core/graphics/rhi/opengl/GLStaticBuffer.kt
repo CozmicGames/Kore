@@ -9,7 +9,9 @@ import org.lwjgl.opengl.GL46C.*
 
 class GLStaticBuffer(val device: GLDevice) : GPUStaticBuffer(), GLBuffer {
     override var handle: Int = 0
-    private var size = 0
+
+    override var size = 0
+        private set
 
     override fun setSize(size: Int) {
         device.checkFail(size > 0) { "Buffer size must be > 0" }

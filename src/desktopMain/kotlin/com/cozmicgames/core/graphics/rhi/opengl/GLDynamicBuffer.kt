@@ -11,15 +11,11 @@ import org.lwjgl.system.MemoryUtil.*
 
 class GLDynamicBuffer(val device: GLDevice) : GPUDynamicBuffer(), GLBuffer {
     override var handle: Int = 0
-    private var size = 0
-    private var mappedMemory: Memory? = null
 
-    private fun ensureIsCreated() {
-        if (handle == 0) {
-            handle = glCreateBuffers()
-            DesktopStatistics.numBuffers++
-        }
-    }
+    override var size = 0
+        private set
+
+    private var mappedMemory: Memory? = null
 
     override fun setSize(size: Int) {
         device.checkFail(size > 0) { "Buffer size must be > 0" }
