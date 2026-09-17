@@ -492,14 +492,6 @@ class GLCommandBuffer : GPUCommandBuffer {
                     val firstVertex = commands[index++]
                     val firstInstance = commands[index++]
 
-                    currentPipeline?.shader?.resources?.forEach {
-                        if (it.type == GPUShader.ResourceType.BUFFER) {
-                            val buffer = dynamicBuffers[it.binding]
-
-                            buffer?.updateDataIfNecessary()
-                        }
-                    }
-
                     glDrawArraysInstancedBaseInstance(primitive, firstVertex, count, instanceCount, firstInstance)
                 }
 
@@ -509,14 +501,6 @@ class GLCommandBuffer : GPUCommandBuffer {
                     val offset = commands[index++]
                     val drawCount = commands[index++]
                     val stride = commands[index++]
-
-                    currentPipeline?.shader?.resources?.forEach {
-                        if (it.type == GPUShader.ResourceType.BUFFER) {
-                            val buffer = dynamicBuffers[it.binding]
-
-                            buffer?.updateDataIfNecessary()
-                        }
-                    }
 
                     GLManager.bindIndirectDrawBuffer(buffer.handle)
 
@@ -530,14 +514,6 @@ class GLCommandBuffer : GPUCommandBuffer {
                     val x = commands[index++]
                     val y = commands[index++]
                     val z = commands[index++]
-
-                    currentPipeline?.shader?.resources?.forEach {
-                        if (it.type == GPUShader.ResourceType.BUFFER) {
-                            val buffer = dynamicBuffers[it.binding]
-
-                            buffer?.updateDataIfNecessary()
-                        }
-                    }
 
                     glDispatchCompute(x, y, z)
 
@@ -565,14 +541,6 @@ class GLCommandBuffer : GPUCommandBuffer {
                 OpCodes.DISPATCH_INDIRECT -> {
                     val buffer = objects[commands[index++]] as GLBuffer
                     val offset = commands[index++]
-
-                    currentPipeline?.shader?.resources?.forEach {
-                        if (it.type == GPUShader.ResourceType.BUFFER) {
-                            val buffer = dynamicBuffers[it.binding]
-
-                            buffer?.updateDataIfNecessary()
-                        }
-                    }
 
                     GLManager.bindIndirectDispatchBuffer(buffer.handle)
 

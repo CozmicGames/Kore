@@ -2,6 +2,8 @@ package com.cozmicgames.core.graphics.rhi.opengl
 
 import com.cozmicgames.core.graphics.rhi.GPUDynamicBuffer
 import com.cozmicgames.core.graphics.DesktopStatistics
+import com.cozmicgames.core.graphics.rhi.internal.checkError
+import com.cozmicgames.core.graphics.rhi.internal.checkFail
 import com.cozmicgames.core.memory.Memory
 import org.lwjgl.opengl.GL45C.glNamedBufferStorage
 import org.lwjgl.opengl.GL46C.*
@@ -10,9 +12,7 @@ import org.lwjgl.system.MemoryUtil.*
 class GLDynamicBuffer(val device: GLDevice) : GPUDynamicBuffer(), GLBuffer {
     override var handle: Int = 0
     private var size = 0
-    private var mappedAddress = 0L
-    private var dataAddress: Long? = null
-    private var isDataValid = false
+    private var mappedMemory: Memory? = null
 
     private fun ensureIsCreated() {
         if (handle == 0) {
@@ -21,42 +21,45 @@ class GLDynamicBuffer(val device: GLDevice) : GPUDynamicBuffer(), GLBuffer {
         }
     }
 
-    override fun setDataSource(memory: Memory, offset: Int, size: Int) {
-        ensureIsCreated()
+    override fun setSize(size: Int) {
+        device.checkFail(size > 0) { "Buffer size must be > 0" }
+
+        if (this.size == size)
+            return
+
+        if (handle != 0) {
+            glDeleteBuffers(handle)
+            device.usedMemoryInternal -= this.size
+        }
+
+        handle = glCreateBuffers()
+        DesktopStatistics.numBuffers++
 
         val flags = GL_MAP_WRITE_BIT or GL_MAP_PERSISTENT_BIT or GL_MAP_COHERENT_BIT
 
         glNamedBufferStorage(handle, size.toLong(), flags)
-        mappedAddress = nglMapNamedBufferRange(handle, 0, size.toLong(), flags)
+        val mappedAddress = nglMapNamedBufferRange(handle, 0, size.toLong(), flags)
 
-        check(mappedAddress != 0L) { "Failed to map OpenGL dynamic buffer" }
+        mappedMemory = Memory(mappedAddress, size)
 
         this.size = size
         device.usedMemoryInternal += size
-
-        dataAddress = memory.address + offset
-
-        isDataValid = false
     }
 
-    override fun invalidateData() {
-        isDataValid = false
-    }
+    override fun updateData(block: (Memory) -> Unit) {
+        val mappedMemory = this.mappedMemory
 
-    internal fun updateDataIfNecessary() {
-        if (isDataValid)
+        if (!device.checkError(mappedMemory != null) { "UpdateData requires setSize to be called first" })
             return
 
-        val dataAddress = dataAddress ?: return
-        memCopy(dataAddress, mappedAddress, size.toLong())
-        isDataValid = true
+        block(mappedMemory!!)
     }
 
     override fun dispose() {
         if (handle != 0) {
-            if (mappedAddress != 0L) {
+            if (mappedMemory != null) {
                 glUnmapNamedBuffer(handle)
-                mappedAddress = 0L
+                mappedMemory = null
             }
 
             glDeleteBuffers(handle)

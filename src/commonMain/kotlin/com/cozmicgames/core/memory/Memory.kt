@@ -9,18 +9,23 @@ import com.cozmicgames.core.utils.Disposable
  * It is used to pass data to graphics APIs.
  * It needs to be disposed when no longer needed, it is not automatically disposed.
  *
- * The primary constructor is private for partitioning [Memory], use the secondary constructor to create a Memory.
+ * The primary constructor is private for partitioning [Memory], use one of the secondary constructors to create a Memory.
  *
  * @param address The address of the memory region.
  * @param size The size of the memory region.
  * @param offset The offset of the memory region.
- * @param isPartition Whether the memory is a partition of another memory region.
+ * @param ownsMemory Whether the memory owns it's backing memory, i.e. if it should free it when calling [dispose].
  */
-class Memory private constructor(val address: Long, val size: Int, private val offset: Int, val isPartition: Boolean = false) : Disposable {
+class Memory private constructor(val address: Long, val size: Int, private val offset: Int, val ownsMemory: Boolean) : Disposable {
     /**
      * Allocates a new memory block of the specified size and instantiates this with it.
      */
-    constructor(size: Int) : this(Kore.memoryAccess.alloc(size), size, 0)
+    constructor(size: Int) : this(Kore.memoryAccess.alloc(size), size, 0, true)
+
+    /**
+     * Creates a new [Memory] instance which uses the specified [address] and [size].
+     */
+    constructor(address: Long, size: Int) : this(address, size, 0, false)
 
     companion object {
         /**
@@ -245,13 +250,13 @@ class Memory private constructor(val address: Long, val size: Int, private val o
      *
      * @return The partition.
      */
-    fun partition(offset: Int, size: Int) = Memory(address, size, offset, true)
+    fun partition(offset: Int, size: Int) = Memory(address, size, offset, false)
 
     /**
      * Disposes of this [Memory] instance.
      */
     override fun dispose() {
-        if (isPartition)
+        if (!ownsMemory)
             return
 
         Kore.memoryAccess.free(address)
